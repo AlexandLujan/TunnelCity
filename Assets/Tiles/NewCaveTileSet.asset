@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a51418abb9f67ca4ba5746a65110b9af, type: 3}
+  m_Name: NewCaveTileSet
+  m_EditorClassIdentifier: Assembly-CSharp::CaveTileSet
+  floor: {fileID: 11400000, guid: 4dcbfd663b794b8449a1983f2313d052, type: 2}
+  solidWall: {fileID: 11400000, guid: 031ed0556065d7b4ba967d0b56a19e62, type: 2}
+  northWall: {fileID: 11400000, guid: c1ef99d9a3061a94792988b99c2643c9, type: 2}
+  southWall: {fileID: 11400000, guid: 8a1954154345ad5429736fd605e15a7d, type: 2}
+  eastWall: {fileID: 11400000, guid: d314fd62dd3c3ab4881a7639de227faa, type: 2}
+  westWall: {fileID: 11400000, guid: d50617adec924244890229bee8ffa969, type: 2}
+  innerNW: {fileID: 11400000, guid: 0f5a363ecdc1ee8429dcec87ed2f377b, type: 2}
+  innerSW: {fileID: 11400000, guid: 13117fbaef15dfd4ba670f7e183e69c5, type: 2}
+  innerNE: {fileID: 11400000, guid: 83216a41fa045f34988d75ee0cd990e2, type: 2}
+  innerSE: {fileID: 11400000, guid: a0067c8a7a76c8a4ea92eb05ff32dc48, type: 2}
+  outerNW: {fileID: 11400000, guid: bf763a749482ca243af81422cfd11df7, type: 2}
+  outerSW: {fileID: 11400000, guid: ac4ac83a1174eee4daecb7ec679abb31, type: 2}
+  outerNE: {fileID: 11400000, guid: 916fc9ce82026b24290ce2bb2dfdfc99, type: 2}
+  outerSE: {fileID: 11400000, guid: 2f2df6d34525ed048ba9bc9758a6b6bd, type: 2}
