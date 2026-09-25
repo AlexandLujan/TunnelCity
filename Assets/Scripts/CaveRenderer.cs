@@ -117,75 +117,83 @@ public class CaveRenderer : MonoBehaviour
         bool openSW = caveGenerator.IsOpen(x - 1, y - 1);
         bool openSE = caveGenerator.IsOpen(x + 1, y - 1);
 
-        if (openS && openE &&
-            !openN && !openW &&
-            tileSet.outerNW != null)
+        int cardinalMask = 0;
+
+        if (openN) cardinalMask |= 1;
+        if (openE) cardinalMask |= 2;
+        if (openS) cardinalMask |= 4;
+        if (openW) cardinalMask |= 8;
+
+        switch (cardinalMask)
         {
-            return tileSet.outerNW;
+            case 0: return SelectInnerCornerTile(openNW, openNE, openSW, openSE);
+            case 1: return tileSet.northWall;
+            case 2: return tileSet.eastWall;
+            case 4: return tileSet.southWall;
+            case 8: return tileSet.westWall;
+            case 1 | 2: return tileSet.outerSW;
+            case 1 | 8: return tileSet.outerSE;
+            case 4 | 2: return tileSet.outerNW;
+            case 4 | 8: return tileSet.outerNE;
+            case 1 | 4: return tileSet.northSouthWall;
+            case 2 | 8: return tileSet.eastWestWall;
+            case 2 | 4 | 8: return tileSet.capConnectedNorth;
+            case 1 | 4 | 8: return tileSet.capConnectedEast;
+            case 1 | 2 | 8: return tileSet.capConnectedSouth;
+            case 1 | 2 | 4: return tileSet.capConnectedWest;
+            case 1 | 2 | 4 | 8: return tileSet.singularWall;
         }
-
-        if (openS && openW &&
-            !openN && !openE &&
-            tileSet.outerNE != null)
-        {
-            return tileSet.outerNE;
-        }
-
-        if (openN && openE &&
-            !openS && !openW &&
-            tileSet.outerSW != null)
-        {
-            return tileSet.outerSW;
-        }
-
-        if (openN && openW &&
-            !openS && !openE &&
-            tileSet.outerSE != null)
-        {
-            return tileSet.outerSE;
-        }
-
-        if (!openN && !openE && !openS && !openW)
-        {
-            if (openNW && tileSet.innerSE != null)
-                return tileSet.innerSE;
-
-            if (openNE && tileSet.innerSW != null)
-                return tileSet.innerSW;
-
-            if (openSW && tileSet.innerNE != null)
-                return tileSet.innerNE;
-
-            if (openSE && tileSet.innerNW != null)
-                return tileSet.innerNW;
-        }
-
-        if (openS && tileSet.southWall != null) return tileSet.southWall;
-
-        if (openN && tileSet.northWall != null) return tileSet.northWall;
-
-        if (openE && tileSet.eastWall != null) return tileSet.eastWall;
-
-        if (openW && tileSet.westWall != null) return tileSet.westWall;
 
         return null;
     }
 
-    public void RenderCell(int x, int y)
+    private TileBase SelectInnerCornerTile(bool openNW, bool openNE, bool openSW, bool openSE)
+    {
+        int diagonalMask = 0;
+
+        if (openNW) diagonalMask |= 1;
+        if (openNE) diagonalMask |= 2;
+        if (openSE) diagonalMask |= 4;
+        if (openSW) diagonalMask |= 8;
+
+        switch (diagonalMask)
+        {
+            case 0: return null;
+            case 1: return tileSet.innerSE;
+            case 2: return tileSet.innerSW;
+            case 4: return tileSet.innerNW;
+            case 8: return tileSet.innerNE;
+            case 1 | 2: return tileSet.innerNW_NE;
+            case 2 | 4: return tileSet.innerNE_SE;
+            case 4 | 8: return tileSet.innerSE_SW;
+            case 8 | 1: return tileSet.innerSW_NW;
+            case 1 | 4: return tileSet.innerNW_SE;
+            case 2 | 8: return tileSet.innerNE_SW;
+            case 1 | 2 | 4: return tileSet.innerNW_NE_SE;
+            case 2 | 4 | 8: return tileSet.innerNE_SE_SW;
+            case 4 | 8 | 1: return tileSet.innerSE_SW_NW;
+            case 8 | 1 | 2: return tileSet.innerSW_NW_NE;
+            case 1 | 2 | 4 | 8: return tileSet.innerAllFour;
+        }
+
+        return null;
+    }
+
+    private void RenderCell(int x, int y)
     {
         if (!HasRequiredReferences()) return;
         if (!caveGenerator.InBounds(x, y)) return;
 
-        Vector3Int position = new Vector3Int(x, y, 0);
+        Vector3Int cellPosition = new Vector3Int(x, y, 0);
 
-        floorTilemap.SetTile(position, null);
-        wallTilemap.SetTile(position, null);
-        wallFaceTilemap.SetTile(position, null);
+        floorTilemap.SetTile(cellPosition, null);
+        wallTilemap.SetTile(cellPosition, null);
+        wallFaceTilemap.SetTile(cellPosition, null);
 
         if (caveGenerator.IsOpen(x, y))
-            floorTilemap.SetTile(position, tileSet.floor);
+            floorTilemap.SetTile(cellPosition, tileSet.floor);
         else
-            wallTilemap.SetTile(position, tileSet.solidWall);
+            wallTilemap.SetTile(cellPosition, tileSet.solidWall);
 
         RenderWallFace(x, y);
     }
@@ -196,15 +204,11 @@ public class CaveRenderer : MonoBehaviour
         // and diagonal neighbor patterns of
         // every cell in this 3x3 area.
 
-        for (int dx = -1; dx <= 1; dx++)
+        for (int x = centerX - 1; x <= centerX + 1; x++)
         {
-            for (int dy = -1; dy <= 1; dy++)
+            for (int y = centerY - 1; y <= centerY + 1; y++)
             {
-                int x = centerX + dx;
-                int y = centerY + dy;
-
                 if (!caveGenerator.InBounds(x, y)) continue;
-
                 RenderCell(x, y);
             }
         }
@@ -212,11 +216,18 @@ public class CaveRenderer : MonoBehaviour
 
     public bool MineWall(int x, int y)
     {
-        if (!HasRequiredReferences()) return false;
-        if (!caveGenerator.MineCell(x, y)) return false;
+        if (!HasRequiredReferences() || !caveGenerator.IsGenerated) return false;
+
+        bool mined = caveGenerator.MineCell(x, y);
+        if (!mined) return false;
+
         RefreshAround(x, y);
         return true;
     }
+
+    public bool MineWall(Vector3Int cell) { return MineWall(cell.x, cell.y); }
+
+    public Vector3Int WorldToCell(Vector3 worldPosition) { return floorTilemap.WorldToCell(worldPosition); }
 
     public void RegenerateCave()
     {
