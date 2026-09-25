@@ -28,10 +28,10 @@ MonoBehaviour:
   outerSE: {fileID: 11400000, guid: 846f1a7e6f996434691b589c05257d81, type: 2}
   northSouthWall: {fileID: 11400000, guid: 2dffc6bb465a02944910dfbfc00b0a7a, type: 2}
   eastWestWall: {fileID: 11400000, guid: a5b340a879cd480449685bc93bd1a49d, type: 2}
-  capConnectedNorth: {fileID: 11400000, guid: 2d8717e11364f784890f5c6f010845d7, type: 2}
-  capConnectedSouth: {fileID: 11400000, guid: 41570f9235de13543bd5e43f4dd17935, type: 2}
-  capConnectedEast: {fileID: 11400000, guid: 8ddeffbd092c8204687bfe48376342d9, type: 2}
-  capConnectedWest: {fileID: 11400000, guid: 96a8fffad126d09428ae636029e51480, type: 2}
+  capConnectedNorth: {fileID: 11400000, guid: 41570f9235de13543bd5e43f4dd17935, type: 2}
+  capConnectedSouth: {fileID: 11400000, guid: 2d8717e11364f784890f5c6f010845d7, type: 2}
+  capConnectedEast: {fileID: 11400000, guid: 96a8fffad126d09428ae636029e51480, type: 2}
+  capConnectedWest: {fileID: 11400000, guid: 8ddeffbd092c8204687bfe48376342d9, type: 2}
   innerNW_NE: {fileID: 11400000, guid: 5417ab9792a8d7b4eadebad3abebacad, type: 2}
   innerNE_SE: {fileID: 11400000, guid: e7c23898f09cd7e48b4204040abea646, type: 2}
   innerSE_SW: {fileID: 11400000, guid: 48b63ba689956784bb094a4ebaaca41c, type: 2}
