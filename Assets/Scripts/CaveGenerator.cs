@@ -67,6 +67,8 @@ public class CaveGenerator : MonoBehaviour
         IsGenerated = true;
     }
 
+    // FUTURE: GenerateCave(CaveLayerData layer, CaveDefinition definition)
+
     private Vector2Int GetRandomDirection()
     {
         int direction = Random.Range(0, 4);

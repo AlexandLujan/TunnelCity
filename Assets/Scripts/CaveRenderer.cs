@@ -117,20 +117,68 @@ public class CaveRenderer : MonoBehaviour
         bool openSW = caveGenerator.IsOpen(x - 1, y - 1);
         bool openSE = caveGenerator.IsOpen(x + 1, y - 1);
 
-        int cardinalMask = 0;
+        const int CARDINAL_MASK = 1 | 2 | 4 | 8;
+        const int DIAGONAL_MASK = 16 | 32 | 64 | 128;
 
-        if (openN) cardinalMask |= 1;
-        if (openE) cardinalMask |= 2;
-        if (openS) cardinalMask |= 4;
-        if (openW) cardinalMask |= 8;
+        int neighborMask = 0;
+
+        if (openN) neighborMask |= 1;
+        if (openE) neighborMask |= 2;
+        if (openS) neighborMask |= 4;
+        if (openW) neighborMask |= 8;
+        if (openNW) neighborMask |= 16;
+        if (openNE) neighborMask |= 32;
+        if (openSW) neighborMask |= 64;
+        if (openSE) neighborMask |= 128;
+
+        int cardinalMask = CARDINAL_MASK & neighborMask;
+        int diagonalMask = DIAGONAL_MASK & neighborMask;
+
+        int relevantCorners = 0;
 
         switch (cardinalMask)
         {
             case 0: return SelectInnerCornerTile(openNW, openNE, openSW, openSE);
-            case 1: return tileSet.northWall;
-            case 2: return tileSet.eastWall;
-            case 4: return tileSet.southWall;
-            case 8: return tileSet.westWall;
+            case 1:
+                relevantCorners = diagonalMask & (16 | 32);
+                switch(relevantCorners)
+                {
+                    case 0: return tileSet.northWall;
+                    case 16: return tileSet.northNW;
+                    case 32: return tileSet.northNE;
+                    case 16 | 32: return tileSet.northNWNE;
+                }
+                break;
+            case 2:
+                relevantCorners = diagonalMask & (32 | 128);
+                switch (relevantCorners)
+                {
+                    case 0: return tileSet.eastWall;
+                    case 32: return tileSet.eastNE;
+                    case 128: return tileSet.eastSE;
+                    case 32 | 128: return tileSet.eastNESE;
+                }
+                break;
+            case 4:
+                relevantCorners = diagonalMask & (64 | 128);
+                switch (relevantCorners)
+                {
+                    case 0: return tileSet.southWall;
+                    case 64: return tileSet.southSW;
+                    case 128: return tileSet.southSE;
+                    case 64 | 128: return tileSet.southSWSE;
+                }
+                break;
+            case 8:
+                relevantCorners = diagonalMask & (16 | 64);
+                switch (relevantCorners)
+                {
+                    case 0: return tileSet.westWall;
+                    case 16: return tileSet.westNW;
+                    case 64: return tileSet.westSW;
+                    case 16 | 64: return tileSet.westNWSW;
+                }
+                break;
             case 1 | 2: return tileSet.outerSW;
             case 1 | 8: return tileSet.outerSE;
             case 4 | 2: return tileSet.outerNW;
