@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class NewEmptyCSharpScript
+public class StreamingManager
 {
-    
+    // Deferring this feature for now.
 }
