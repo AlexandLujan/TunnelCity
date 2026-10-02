@@ -14,7 +14,7 @@ public class WorldRegionDefinition : ScriptableObject
     private string displayName;
 
     [SerializeField]
-    private LocationType locationType;
+    private WorldType worldType;
 
     [Header("World Placement")]
     [SerializeField]
@@ -33,7 +33,7 @@ public class WorldRegionDefinition : ScriptableObject
 
     public string RegionID => regionID;
     public string DisplayName => displayName;
-    public LocationType LocationType => locationType;
+    public WorldType WorldType => worldType;
 
     public WorldCoordinate WorldOrigin => worldOrigin;
 
@@ -41,4 +41,6 @@ public class WorldRegionDefinition : ScriptableObject
     public int ChunkSize => chunkSize;
 
     public string SceneName => sceneName;
+
+    public Vector2Int RegionSizeInTiles => regionSizeInChunks * chunkSize;
 }

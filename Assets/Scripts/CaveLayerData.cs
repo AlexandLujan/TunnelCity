@@ -8,15 +8,17 @@ public class CaveLayerData
     public int width;
     public int depth;
 
+    public CaveType caveType;
     public CaveTileType[,] tiles;
     public CaveLayerState state;
 
-    public CaveLayerData(int layerIndex, int layerSeed, int width,int depth)
+    public CaveLayerData(int layerIndex, int layerSeed, int width, int depth, CaveType caveType)
     {
         this.layerIndex = layerIndex;
         this.layerSeed = layerSeed;
         this.width = width;
         this.depth = depth;
+        this.caveType = caveType;
 
         tiles = new CaveTileType[width, depth];
         state = CaveLayerState.DataOnly;
@@ -24,21 +26,21 @@ public class CaveLayerData
 
     public bool InBounds(int x, int z)
     {
-        // Check whether the requested tile coordinate
-        // exists within this cave layer.
-
-        return false;
+        return x >= 0 &&
+            x < width &&
+            z >= 0 &&
+            z < depth;
     }
 
     public CaveTileType GetTile(int x, int z)
     {
-        // Return the tile type at the requested coordinate.
-
-        return default;
+        if (!InBounds(x, z)) return default;
+        return tiles[x,z];
     }
 
     public void SetTile(int x, int z, CaveTileType tileType)
     {
-        // Change the tile at the requested coordinate.
+        if (!InBounds(x, z)) return;
+        tiles[x, z] = tileType;
     }
 }

@@ -136,4 +136,17 @@ public class CaveGenerator : MonoBehaviour
         solid[x, y] = false;
         return true;
     }
+
+    private CaveTileType GetSolidTileType(CaveType caveType)
+    {
+        return caveType switch
+        {
+            CaveType.Dirt => CaveTileType.Dirt,
+            CaveType.Rock => CaveTileType.Rock,
+            CaveType.Crystal => CaveTileType.Crystal,
+            CaveType.MountainRock => CaveTileType.MountainRock,
+
+            _ => CaveTileType.Rock
+        };
+    }
 }

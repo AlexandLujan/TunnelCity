@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public struct WorldCoordinate
+public struct WorldCoordinate : IEquatable<WorldCoordinate>
 {
     public int x;
     public int layer;
@@ -24,7 +24,8 @@ public struct WorldCoordinate
 
     public override bool Equals(object obj)
     {
-        return obj is WorldCoordinate other && Equals(other);
+        return obj is WorldCoordinate other
+            && Equals(other);
     }
 
     public override int GetHashCode()
