@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
 
-public struct ChunkCoordinate
+[Serializable]
+public struct ChunkCoordinate : IEquatable<ChunkCoordinate>
 {
     public int x;
     public int z;
@@ -20,7 +21,8 @@ public struct ChunkCoordinate
 
     public override bool Equals(object obj)
     {
-        return obj is ChunkCoordinate other && Equals(other);
+        return obj is ChunkCoordinate other
+            && Equals(other);
     }
 
     public override int GetHashCode()

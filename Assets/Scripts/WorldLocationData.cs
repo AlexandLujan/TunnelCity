@@ -13,8 +13,18 @@ public class WorldLocationData : ScriptableObject
     [SerializeField]
     private string displayName;
 
+    [Header("World Classification")]
     [SerializeField]
-    private LocationType locationType;
+    private WorldType worldType;
+
+    [SerializeField]
+    private OverworldType overworldType;
+
+    [SerializeField]
+    private UnderworldType underworldType;
+
+    [SerializeField]
+    private InteriorType interiorType;
 
     [Header("World Placement")]
     [SerializeField]
@@ -25,7 +35,12 @@ public class WorldLocationData : ScriptableObject
 
     public string LocationID => locationID;
     public string DisplayName => displayName;
-    public LocationType LocationType => locationType;
+
+    public WorldType WorldType => worldType;
+
+    public OverworldType OverworldType => overworldType;
+    public UnderworldType UnderworldType => underworldType;
+    public InteriorType InteriorType => interiorType;
 
     public WorldCoordinate WorldPosition => worldPosition;
     public Vector2Int SizeInTiles => sizeInTiles;
