@@ -18,26 +18,41 @@ public class SurfaceChunkRenderer : MonoBehaviour
     [SerializeField]
     private Tilemap mountainWallsTilemap;
 
-    public void RenderChunk(
-        ChunkCoordinate coordinate,
-        int chunkSize)
+    public SurfaceChunkData CaptureChunkData(ChunkCoordinate coordinate, BoundsInt bounds)
     {
-        int xTemp = coordinate.x;
-        int zTemp = coordinate.z;
-        Vector2Int cellPosition = new Vector2Int(xTemp, zTemp);
+        SurfaceChunkData chunkData = new SurfaceChunkData(coordinate, bounds);
 
-        //1.Receive a ChunkCoordinate
-        //2.Convert that chunk coordinate into Tilemap cell bounds
-        //3.Find the Wilderness tiles / content that belong inside those bounds
-        //4.Make that content active / visible
+        foreach (Vector3Int cellPosition in bounds.allPositionsWithin)
+        {
+            chunkData.SetGroundTile(cellPosition, groundTilemap.GetTile(cellPosition));
+            chunkData.SetWaterTile(cellPosition, waterTilemap.GetTile(cellPosition));
+            chunkData.SetDetailTile(cellPosition, detailTilemap.GetTile(cellPosition));
+            chunkData.SetMountainTile(cellPosition, mountainWallsTilemap.GetTile(cellPosition));
+        }
+
+        return chunkData;
     }
 
-    public void ClearChunk(
-        ChunkCoordinate coordinate,
-        int chunkSize)
+    public void RenderChunk(SurfaceChunkData chunkData)
     {
-        // Clear or disable cells/content
-        // belonging to this chunk.
+        foreach (Vector3Int cellPosition in chunkData.Bounds.allPositionsWithin)
+        {
+            groundTilemap.SetTile(cellPosition, chunkData.GetGroundTile(cellPosition));
+            waterTilemap.SetTile(cellPosition, chunkData.GetWaterTile(cellPosition));
+            detailTilemap.SetTile(cellPosition, chunkData.GetDetailTile(cellPosition));
+            mountainWallsTilemap.SetTile(cellPosition, chunkData.GetMountainTile(cellPosition));
+        }
+    }
+
+    public void ClearChunk(BoundsInt bounds)
+    {
+        foreach (Vector3Int cellPosition in bounds.allPositionsWithin)
+        {
+            groundTilemap.SetTile(cellPosition, null);
+            waterTilemap.SetTile(cellPosition, null);
+            detailTilemap.SetTile(cellPosition, null);
+            mountainWallsTilemap.SetTile(cellPosition, null);
+        }
     }
 }
 
