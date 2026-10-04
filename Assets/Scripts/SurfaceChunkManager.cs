@@ -3,29 +3,44 @@ using UnityEngine;
 
 public class SurfaceChunkManager
 {
-    private const int ChunkSize = 32;
+    private WorldRegionDefinition regionDefinition;
     private static readonly Vector2Int ChunkOrigin = new Vector2Int(-4, -2);
-    private SurfaceChunkRenderer reference;
+    private SurfaceChunkRenderer renderer;
     private Dictionary<ChunkCoordinate, SurfaceChunkData> chunks;
 
-    public SurfaceChunkManager(SurfaceChunkRenderer surfaceChunkRenderer)
+    public SurfaceChunkManager(SurfaceChunkRenderer surfaceChunkRenderer, WorldRegionDefinition regionDefinition)
     {
-        this.reference = surfaceChunkRenderer;
+        this.renderer = surfaceChunkRenderer;
+        this.regionDefinition = regionDefinition;
         chunks = new Dictionary<ChunkCoordinate, SurfaceChunkData>();
+    }
+
+    public void Initialize()
+    {
+        Vector2Int regionSize = regionDefinition.RegionSizeInChunks;
+
+        for (int z = 0; z < regionSize.y; z++)
+        {
+            for (int x = 0; x < regionSize.x; x++)
+            {
+                ChunkCoordinate coordinate = new ChunkCoordinate(x, z);
+                CaptureChunk(coordinate);
+            }
+        }
     }
 
     // Where is this chunk?
     private BoundsInt GetChunkBounds(ChunkCoordinate coordinate)
     {
-        int startX = ChunkOrigin.x + (coordinate.x * ChunkSize);
-        int startY = ChunkOrigin.y + (coordinate.z * ChunkSize);
+        int startX = ChunkOrigin.x + (coordinate.x * regionDefinition.ChunkSize);
+        int startY = ChunkOrigin.y + (coordinate.z * regionDefinition.ChunkSize);
 
         return new BoundsInt(
             startX,
             startY,
             0,
-            ChunkSize,
-            ChunkSize,
+            regionDefinition.ChunkSize,
+            regionDefinition.ChunkSize,
             1
         );
     }
@@ -34,19 +49,39 @@ public class SurfaceChunkManager
     {
         BoundsInt bounds = GetChunkBounds(coordinate);
 
-        SurfaceChunkData chunkData = reference.CaptureChunkData(coordinate, bounds);
+        SurfaceChunkData chunkData = renderer.CaptureChunkData(coordinate, bounds);
         chunks[coordinate] = chunkData;
     }
     private void LoadChunk(ChunkCoordinate coordinate)
     {
+        if (!HasChunk(coordinate))
+            return;
 
+        SurfaceChunkData chunkData = chunks[coordinate];
+
+        renderer.RenderChunk(chunkData);
     }
     private void UnloadChunk(ChunkCoordinate coordinate)
     {
+        if (!HasChunk(coordinate))
+            return;
 
+        SurfaceChunkData chunkData = chunks[coordinate];
+
+        renderer.ClearChunk(chunkData.Bounds);
     }
     private bool HasChunk(ChunkCoordinate coordinate)
     {
-        return false;
+        return chunks.ContainsKey(coordinate);
+    }
+
+    public void Load(ChunkCoordinate coordinate)
+    {
+        LoadChunk(coordinate);
+    }
+
+    public void Unload(ChunkCoordinate coordinate)
+    {
+        UnloadChunk(coordinate);
     }
 }

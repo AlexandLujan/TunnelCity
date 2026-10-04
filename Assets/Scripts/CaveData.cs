@@ -14,9 +14,7 @@ public class CaveData
 
     public IReadOnlyList<CaveLayerData> Layers => layers;
 
-    public CaveData(
-        int caveSeed,
-        CaveDefinition definition)
+    public CaveData(int caveSeed,CaveDefinition definition)
     {
         this.caveSeed = caveSeed;
         this.definition = definition;
@@ -26,26 +24,31 @@ public class CaveData
 
     public CaveLayerData GetLayer(int layerIndex)
     {
-        // Find and return the CaveLayerData
-        // matching the requested logical layer.
+        foreach (CaveLayerData layer in layers)
+        {
+            if (layer.layerIndex == layerIndex)
+                return layer;
+        }
 
         return null;
     }
 
     public bool HasLayer(int layerIndex)
     {
-        // Determine whether this cave already
-        // contains the requested layer.
+        foreach (CaveLayerData layer in layers)
+        {
+            if (layer.layerIndex == layerIndex)
+                return true;
+        }
 
         return false;
     }
 
     public void AddLayer(CaveLayerData layer)
     {
-        // Validate the layer.
+        if (layer == null) return;
+        if (HasLayer(layer.layerIndex)) return;
 
-        // Prevent duplicate layer indices.
-
-        // Add the layer to the cave.
+        layers.Add(layer);
     }
 }

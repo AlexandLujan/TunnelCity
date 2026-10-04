@@ -20,14 +20,22 @@ public class WorldDatabase : ScriptableObject
 
     public WorldRegionDefinition GetRegion(string regionID)
     {
-        // Find and return the matching region.
+        foreach (WorldRegionDefinition region in regions)
+        {
+            if (region.RegionID == regionID)
+                return region;
+        }
 
         return null;
     }
 
     public WorldLocationData GetLocation(string locationID)
     {
-        // Find and return the matching named location.
+        foreach (WorldLocationData location in locations)
+        {
+            if (location.LocationID == locationID)
+                return location;
+        }
 
         return null;
     }
