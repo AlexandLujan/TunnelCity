@@ -25,64 +25,127 @@ public class StreamingManager : MonoBehaviour
 
     private void Awake()
     {
-        activeChunks = new HashSet<ChunkCoordinate>();
+        activeChunks =
+            new HashSet<ChunkCoordinate>();
     }
 
-    public void SetSurfaceChunkManager(SurfaceChunkManager chunkManager)
+    private void Update()
+    {
+        if (surfaceChunkManager == null)
+            return;
+
+        if (cardinalMovement == null)
+            return;
+
+        ChunkCoordinate playerChunk =
+            surfaceChunkManager.WorldToChunkCoordinate(
+                cardinalMovement.transform.position
+            );
+
+        UpdateCurrentChunk(playerChunk);
+    }
+
+    public void SetSurfaceChunkManager(
+        SurfaceChunkManager chunkManager)
     {
         surfaceChunkManager = chunkManager;
+
+        activeChunks.Clear();
+
+        if (surfaceChunkManager == null)
+            return;
+
+        surfaceChunkManager.PrepareForStreaming();
+
+        if (cardinalMovement == null)
+            return;
+
+        ChunkCoordinate startingChunk =
+            surfaceChunkManager.WorldToChunkCoordinate(
+                cardinalMovement.transform.position
+            );
+
+        InitializeChunks(startingChunk);
     }
 
-    public void SetCurrentLayer(int layerIndex)
+    public void SetCurrentLayer(
+        int layerIndex)
     {
         currentLayerIndex = layerIndex;
     }
 
-    public async void LoadRegion(WorldRegionDefinition regionDefinition)
+    public async void LoadRegion(
+        WorldRegionDefinition regionDefinition)
     {
-        if (regionDefinition == null) return;
-        if (string.IsNullOrEmpty(regionDefinition.SceneName)) return;
+        if (regionDefinition == null)
+            return;
 
-        Scene existingScene = SceneManager.GetSceneByName(regionDefinition.SceneName);
+        if (string.IsNullOrEmpty(
+            regionDefinition.SceneName))
+            return;
+
+        Scene existingScene =
+            SceneManager.GetSceneByName(
+                regionDefinition.SceneName
+            );
 
         if (existingScene.isLoaded)
         {
             currentRegion = regionDefinition;
+
             AssignRegionGrid(existingScene);
+
             return;
         }
 
-        AsyncOperation operation = SceneManager.LoadSceneAsync(
+        AsyncOperation operation =
+            SceneManager.LoadSceneAsync(
                 regionDefinition.SceneName,
                 LoadSceneMode.Additive
             );
 
-        if (operation == null) return;
+        if (operation == null)
+            return;
 
-        while (!operation.isDone) await Task.Yield();
+        while (!operation.isDone)
+            await Task.Yield();
 
-        Scene loadedScene = SceneManager.GetSceneByName(regionDefinition.SceneName);
+        Scene loadedScene =
+            SceneManager.GetSceneByName(
+                regionDefinition.SceneName
+            );
 
         currentRegion = regionDefinition;
 
         AssignRegionGrid(loadedScene);
     }
 
-    public async void UnloadRegion(WorldRegionDefinition regionDefinition)
+    public async void UnloadRegion(
+        WorldRegionDefinition regionDefinition)
     {
-        if (regionDefinition == null) return;
+        if (regionDefinition == null)
+            return;
 
-        if (string.IsNullOrEmpty(regionDefinition.SceneName)) return;
+        if (string.IsNullOrEmpty(
+            regionDefinition.SceneName))
+            return;
 
-        Scene scene = SceneManager.GetSceneByName(regionDefinition.SceneName);
+        Scene scene =
+            SceneManager.GetSceneByName(
+                regionDefinition.SceneName
+            );
 
-        if (!scene.isLoaded) return;
+        if (!scene.isLoaded)
+            return;
 
-        AsyncOperation operation = SceneManager.UnloadSceneAsync(scene);
+        AsyncOperation operation =
+            SceneManager.UnloadSceneAsync(scene);
 
-        if (operation == null) return;
+        if (operation == null)
+            return;
 
-        while (!operation.isDone) await Task.Yield();
+        while (!operation.isDone)
+            await Task.Yield();
 
         if (currentRegion == regionDefinition)
         {
@@ -92,19 +155,26 @@ public class StreamingManager : MonoBehaviour
 
             surfaceChunkManager = null;
 
-            if (cardinalMovement != null) cardinalMovement.SetWorldGrid(null);
+            if (cardinalMovement != null)
+            {
+                cardinalMovement.SetWorldGrid(null);
+            }
         }
     }
 
-    public void InitializeChunks(ChunkCoordinate startingChunk)
+    public void InitializeChunks(
+        ChunkCoordinate startingChunk)
     {
         currentChunk = startingChunk;
+
         RefreshChunks();
     }
 
-    public void UpdateCurrentChunk(ChunkCoordinate coordinate)
+    public void UpdateCurrentChunk(
+        ChunkCoordinate coordinate)
     {
-        if (coordinate == currentChunk) return;
+        if (coordinate == currentChunk)
+            return;
 
         currentChunk = coordinate;
 
@@ -113,32 +183,53 @@ public class StreamingManager : MonoBehaviour
 
     private void RefreshChunks()
     {
-        if (surfaceChunkManager == null) return;
+        if (surfaceChunkManager == null)
+            return;
 
-        HashSet<ChunkCoordinate> desiredChunks = GetDesiredChunks();
+        HashSet<ChunkCoordinate> desiredChunks =
+            GetDesiredChunks();
 
-        foreach (ChunkCoordinate coordinate in desiredChunks)
+        foreach (ChunkCoordinate coordinate
+                 in desiredChunks)
         {
-            if (!activeChunks.Contains(coordinate)) surfaceChunkManager.Load(coordinate);
+            if (!activeChunks.Contains(coordinate))
+            {
+                surfaceChunkManager.Load(
+                    coordinate
+                );
+            }
         }
 
-        foreach (ChunkCoordinate coordinate in activeChunks)
+        foreach (ChunkCoordinate coordinate
+                 in activeChunks)
         {
-            if (!desiredChunks.Contains(coordinate)) surfaceChunkManager.Unload(coordinate);
+            if (!desiredChunks.Contains(coordinate))
+            {
+                surfaceChunkManager.Unload(
+                    coordinate
+                );
+            }
         }
 
         activeChunks = desiredChunks;
     }
 
-    private HashSet<ChunkCoordinate> GetDesiredChunks()
+    private HashSet<ChunkCoordinate>
+        GetDesiredChunks()
     {
-        HashSet<ChunkCoordinate> desiredChunks = new HashSet<ChunkCoordinate>();
+        HashSet<ChunkCoordinate> desiredChunks =
+            new HashSet<ChunkCoordinate>();
 
-        if (surfaceChunkManager == null) return desiredChunks;
+        if (surfaceChunkManager == null)
+            return desiredChunks;
 
-        for (int z = -streamingRadius; z <= streamingRadius; z++)
+        for (int z = -streamingRadius;
+             z <= streamingRadius;
+             z++)
         {
-            for (int x = -streamingRadius; x <= streamingRadius; x++)
+            for (int x = -streamingRadius;
+                 x <= streamingRadius;
+                 x++)
             {
                 ChunkCoordinate coordinate =
                     new ChunkCoordinate(
@@ -146,7 +237,11 @@ public class StreamingManager : MonoBehaviour
                         currentChunk.z + z
                     );
 
-                if (!surfaceChunkManager.HasChunkData(coordinate)) continue;
+                if (!surfaceChunkManager
+                    .HasChunkData(coordinate))
+                {
+                    continue;
+                }
 
                 desiredChunks.Add(coordinate);
             }
@@ -155,29 +250,43 @@ public class StreamingManager : MonoBehaviour
         return desiredChunks;
     }
 
-    private void AssignRegionGrid(Scene scene)
+    private void AssignRegionGrid(
+        Scene scene)
     {
-        if (!scene.isLoaded) return;
+        if (!scene.isLoaded)
+            return;
 
-        Grid regionGrid = GetGridFromScene(scene);
+        Grid regionGrid =
+            GetGridFromScene(scene);
 
-        if (regionGrid == null) return;
+        if (regionGrid == null)
+            return;
 
-        if (cardinalMovement == null) return;
+        if (cardinalMovement == null)
+            return;
 
-        cardinalMovement.SetWorldGrid(regionGrid);
+        cardinalMovement.SetWorldGrid(
+            regionGrid
+        );
     }
 
-    private Grid GetGridFromScene(Scene scene)
+    private Grid GetGridFromScene(
+        Scene scene)
     {
-        GameObject[] rootObjects = scene.GetRootGameObjects();
+        GameObject[] rootObjects =
+            scene.GetRootGameObjects();
 
-        foreach (GameObject rootObject in rootObjects)
+        foreach (GameObject rootObject
+                 in rootObjects)
         {
-            Grid grid = rootObject.GetComponentInChildren<Grid>();
+            Grid grid =
+                rootObject
+                    .GetComponentInChildren<Grid>();
 
-            if (grid != null) return grid;
+            if (grid != null)
+                return grid;
         }
+
         return null;
     }
 }

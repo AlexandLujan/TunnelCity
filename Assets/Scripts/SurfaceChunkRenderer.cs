@@ -1,7 +1,5 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.WSA;
 
 public class SurfaceChunkRenderer : MonoBehaviour
 {
@@ -18,16 +16,34 @@ public class SurfaceChunkRenderer : MonoBehaviour
     [SerializeField]
     private Tilemap mountainWallsTilemap;
 
-    public SurfaceChunkData CaptureChunkData(ChunkCoordinate coordinate, BoundsInt bounds)
+    public SurfaceChunkData CaptureChunkData(
+        ChunkCoordinate coordinate,
+        BoundsInt bounds)
     {
-        SurfaceChunkData chunkData = new SurfaceChunkData(coordinate, bounds);
+        SurfaceChunkData chunkData =
+            new SurfaceChunkData(coordinate, bounds);
 
         foreach (Vector3Int cellPosition in bounds.allPositionsWithin)
         {
-            chunkData.SetGroundTile(cellPosition, groundTilemap.GetTile(cellPosition));
-            chunkData.SetWaterTile(cellPosition, waterTilemap.GetTile(cellPosition));
-            chunkData.SetDetailTile(cellPosition, detailTilemap.GetTile(cellPosition));
-            chunkData.SetMountainTile(cellPosition, mountainWallsTilemap.GetTile(cellPosition));
+            chunkData.SetGroundTile(
+                cellPosition,
+                groundTilemap.GetTile(cellPosition)
+            );
+
+            chunkData.SetWaterTile(
+                cellPosition,
+                waterTilemap.GetTile(cellPosition)
+            );
+
+            chunkData.SetDetailTile(
+                cellPosition,
+                detailTilemap.GetTile(cellPosition)
+            );
+
+            chunkData.SetMountainTile(
+                cellPosition,
+                mountainWallsTilemap.GetTile(cellPosition)
+            );
         }
 
         return chunkData;
@@ -35,12 +51,28 @@ public class SurfaceChunkRenderer : MonoBehaviour
 
     public void RenderChunk(SurfaceChunkData chunkData)
     {
-        foreach (Vector3Int cellPosition in chunkData.Bounds.allPositionsWithin)
+        foreach (Vector3Int cellPosition
+                 in chunkData.Bounds.allPositionsWithin)
         {
-            groundTilemap.SetTile(cellPosition, chunkData.GetGroundTile(cellPosition));
-            waterTilemap.SetTile(cellPosition, chunkData.GetWaterTile(cellPosition));
-            detailTilemap.SetTile(cellPosition, chunkData.GetDetailTile(cellPosition));
-            mountainWallsTilemap.SetTile(cellPosition, chunkData.GetMountainTile(cellPosition));
+            groundTilemap.SetTile(
+                cellPosition,
+                chunkData.GetGroundTile(cellPosition)
+            );
+
+            waterTilemap.SetTile(
+                cellPosition,
+                chunkData.GetWaterTile(cellPosition)
+            );
+
+            detailTilemap.SetTile(
+                cellPosition,
+                chunkData.GetDetailTile(cellPosition)
+            );
+
+            mountainWallsTilemap.SetTile(
+                cellPosition,
+                chunkData.GetMountainTile(cellPosition)
+            );
         }
     }
 
@@ -54,12 +86,12 @@ public class SurfaceChunkRenderer : MonoBehaviour
             mountainWallsTilemap.SetTile(cellPosition, null);
         }
     }
-}
 
-/*
-Tilemap.GetTile(cellPosition)
-Tilemap.SetTile(cellPosition, tile)
-Tilemap.HasTile(cellPosition)
-Tilemap.WorldToCell(worldPosition)
-Tilemap.CellToWorld(cellPosition) 
-*/ 
+    public void ClearAll()
+    {
+        groundTilemap.ClearAllTiles();
+        waterTilemap.ClearAllTiles();
+        detailTilemap.ClearAllTiles();
+        mountainWallsTilemap.ClearAllTiles();
+    }
+}

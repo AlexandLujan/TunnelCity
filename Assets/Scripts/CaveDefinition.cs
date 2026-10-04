@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+[CreateAssetMenu(
+    fileName = "NewCaveDefinition",
+    menuName = "Cave/Cave Definition")]
 public class CaveDefinition : ScriptableObject
 {
     private CaveType caveType;
@@ -9,6 +12,11 @@ public class CaveDefinition : ScriptableObject
     private int boundaryThickness;
     private CaveTileSet caveTileSet;
 
+    public CaveType CaveType => caveType;
+    public int ChunkSize => chunkSize;
+    public Vector2Int ChunkDimensions => chunkDimensions;
+    public int BoundaryThickness => boundaryThickness;
+    public CaveTileSet CaveTileSet => caveTileSet;
     public int WidthInTiles => chunkDimensions.x * chunkSize;
     public int DepthInTiles => chunkDimensions.y * chunkSize;
 }
