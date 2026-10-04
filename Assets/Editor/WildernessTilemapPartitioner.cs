@@ -18,8 +18,10 @@ public class WildernessTilemapPartitioner : EditorWindow
     private const int PartitionChunksWide = 5;
     private const int PartitionChunksTall = 6;
 
-    private static readonly Vector2Int ChunkOrigin =
-        new Vector2Int(-4, -2);
+    // Actual map-origin cell.
+    // Partition_0_0 begins here.
+    private Vector2Int mapOriginCell =
+        new Vector2Int(-196, -194);
 
     [MenuItem("Tools/World/Partition Wilderness Tilemaps")]
     public static void ShowWindow()
@@ -66,27 +68,33 @@ public class WildernessTilemapPartitioner : EditorWindow
 
         GUILayout.Space(10);
 
+        mapOriginCell = EditorGUILayout.Vector2IntField(
+            "Map Origin Cell",
+            mapOriginCell
+        );
+
+        GUILayout.Space(10);
+
         if (GUILayout.Button("Create Partitioned Tilemaps"))
         {
             CreatePartitions();
+        }
+
+        GUILayout.Space(5);
+
+        if (GUILayout.Button("Delete Existing Partitions"))
+        {
+            DeleteExistingPartitions();
         }
     }
 
     private void CreatePartitions()
     {
-        if (groundTilemap == null ||
-            waterTilemap == null ||
-            mountainTilemap == null ||
-            detailTilemap == null)
-        {
-            Debug.LogError(
-                "Assign all four source Tilemaps first."
-            );
-
+        if (!HasRequiredReferences())
             return;
-        }
 
-        Grid grid = groundTilemap.GetComponentInParent<Grid>();
+        Grid grid =
+            groundTilemap.GetComponentInParent<Grid>();
 
         if (grid == null)
         {
@@ -100,12 +108,26 @@ public class WildernessTilemapPartitioner : EditorWindow
         Undo.IncrementCurrentGroup();
         int undoGroup = Undo.GetCurrentGroup();
 
+        // Always remove the previous generated set first.
+        DeleteExistingPartitions();
+
+        Debug.Log(
+            $"Generating Wilderness partitions from map origin " +
+            $"({mapOriginCell.x}, {mapOriginCell.y})"
+        );
+
+        int partitionCountX =
+            RegionChunksWide / PartitionChunksWide;
+
+        int partitionCountZ =
+            RegionChunksTall / PartitionChunksTall;
+
         for (int partitionZ = 0;
-             partitionZ < RegionChunksTall / PartitionChunksTall;
+             partitionZ < partitionCountZ;
              partitionZ++)
         {
             for (int partitionX = 0;
-                 partitionX < RegionChunksWide / PartitionChunksWide;
+                 partitionX < partitionCountX;
                  partitionX++)
             {
                 CreatePartition(
@@ -119,7 +141,8 @@ public class WildernessTilemapPartitioner : EditorWindow
         Undo.CollapseUndoOperations(undoGroup);
 
         Debug.Log(
-            "Finished creating Wilderness Tilemap partitions."
+            $"Finished creating Wilderness Tilemap partitions. " +
+            $"Created {partitionCountX * partitionCountZ} partitions."
         );
     }
 
@@ -147,25 +170,29 @@ public class WildernessTilemapPartitioner : EditorWindow
         Tilemap newGround =
             CreateTilemap(
                 partitionObject.transform,
-                "GroundTilemap"
+                "GroundTilemap",
+                groundTilemap
             );
 
         Tilemap newWater =
             CreateTilemap(
                 partitionObject.transform,
-                "WaterTilemap"
+                "WaterTilemap",
+                waterTilemap
             );
 
         Tilemap newMountain =
             CreateTilemap(
                 partitionObject.transform,
-                "MountainTilemap"
+                "MountainTilemap",
+                mountainTilemap
             );
 
         Tilemap newDetail =
             CreateTilemap(
                 partitionObject.transform,
-                "DetailTilemap"
+                "DetailTilemap",
+                detailTilemap
             );
 
         int startChunkX =
@@ -175,11 +202,11 @@ public class WildernessTilemapPartitioner : EditorWindow
             partitionZ * PartitionChunksTall;
 
         int startCellX =
-            ChunkOrigin.x +
+            mapOriginCell.x +
             (startChunkX * ChunkSize);
 
         int startCellY =
-            ChunkOrigin.y +
+            mapOriginCell.y +
             (startChunkZ * ChunkSize);
 
         int width =
@@ -195,6 +222,12 @@ public class WildernessTilemapPartitioner : EditorWindow
             width,
             height,
             1
+        );
+
+        Debug.Log(
+            $"{partitionName}: " +
+            $"start=({startCellX}, {startCellY}), " +
+            $"size=({width}, {height})"
         );
 
         CopyTiles(
@@ -224,7 +257,8 @@ public class WildernessTilemapPartitioner : EditorWindow
 
     private Tilemap CreateTilemap(
         Transform parent,
-        string name)
+        string name,
+        Tilemap source)
     {
         GameObject tilemapObject =
             new GameObject(name);
@@ -238,6 +272,16 @@ public class WildernessTilemapPartitioner : EditorWindow
             parent,
             false
         );
+
+        // Match the source Tilemap's transform.
+        tilemapObject.transform.localPosition =
+            source.transform.localPosition;
+
+        tilemapObject.transform.localRotation =
+            source.transform.localRotation;
+
+        tilemapObject.transform.localScale =
+            source.transform.localScale;
 
         Tilemap tilemap =
             tilemapObject.AddComponent<Tilemap>();
@@ -270,5 +314,69 @@ public class WildernessTilemapPartitioner : EditorWindow
                 tile
             );
         }
+    }
+
+    private void DeleteExistingPartitions()
+    {
+        if (groundTilemap == null)
+        {
+            Debug.LogError(
+                "Assign the Ground Tilemap first."
+            );
+
+            return;
+        }
+
+        Grid grid =
+            groundTilemap.GetComponentInParent<Grid>();
+
+        if (grid == null)
+        {
+            Debug.LogError(
+                "Ground Tilemap is not under a Grid."
+            );
+
+            return;
+        }
+
+        int deletedCount = 0;
+
+        for (int i = grid.transform.childCount - 1;
+             i >= 0;
+             i--)
+        {
+            Transform child =
+                grid.transform.GetChild(i);
+
+            if (!child.name.StartsWith("Partition_"))
+                continue;
+
+            Undo.DestroyObjectImmediate(
+                child.gameObject
+            );
+
+            deletedCount++;
+        }
+
+        Debug.Log(
+            $"Deleted {deletedCount} existing Wilderness partitions."
+        );
+    }
+
+    private bool HasRequiredReferences()
+    {
+        if (groundTilemap == null ||
+            waterTilemap == null ||
+            mountainTilemap == null ||
+            detailTilemap == null)
+        {
+            Debug.LogError(
+                "Assign all four source Tilemaps first."
+            );
+
+            return false;
+        }
+
+        return true;
     }
 }
