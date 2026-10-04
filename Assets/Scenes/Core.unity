@@ -650,6 +650,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldManager
   worldDatabase: {fileID: 11400000, guid: bbe80368b371327449e75f8452c7cefc, type: 2}
+  streamingManager: {fileID: 4173951}
+  startingRegion: {fileID: 11400000, guid: 14762e71196b07b41934af0047108c0e, type: 2}
 --- !u!4 &1504694433
 Transform:
   m_ObjectHideFlags: 0
