@@ -75,6 +75,11 @@ public class CardinalMovement : MonoBehaviour
         }
     }
 
+    public void SetWorldGrid(Grid grid)
+    {
+        worldGrid = grid;
+    }
+
     private Vector2Int GetInputDirection()
     {
         Keyboard keyboard = Keyboard.current;

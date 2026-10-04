@@ -19,6 +19,10 @@ public class SurfaceChunkManager
     {
         Vector2Int regionSize = regionDefinition.RegionSizeInChunks;
 
+        Debug.Log(
+            $"Initializing surface region: {regionSize.x} x {regionSize.y} chunks."
+        );
+
         for (int z = 0; z < regionSize.y; z++)
         {
             for (int x = 0; x < regionSize.x; x++)
@@ -27,6 +31,8 @@ public class SurfaceChunkManager
                 CaptureChunk(coordinate);
             }
         }
+
+        Debug.Log($"Captured {chunks.Count} surface chunks.");
     }
 
     // Where is this chunk?
@@ -73,6 +79,11 @@ public class SurfaceChunkManager
     private bool HasChunk(ChunkCoordinate coordinate)
     {
         return chunks.ContainsKey(coordinate);
+    }
+
+    public bool HasChunkData(ChunkCoordinate coordinate)
+    {
+        return HasChunk(coordinate);
     }
 
     public void Load(ChunkCoordinate coordinate)

@@ -6,55 +6,154 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     private WorldDatabase worldDatabase;
 
+    [Header("Streaming")]
+    [SerializeField]
+    private StreamingManager streamingManager;
+
+    [Header("Starting Region")]
+    [SerializeField]
+    private WorldRegionDefinition startingRegion;
+
     private WorldState worldState;
+
+    private WorldRegionDefinition currentRegion;
 
     public WorldDatabase WorldDatabase => worldDatabase;
     public WorldState WorldState => worldState;
+
+    public WorldRegionDefinition CurrentRegion => currentRegion;
 
     private void Awake()
     {
         InitializeWorldState();
     }
 
+    private void Start()
+    {
+        if (streamingManager == null)
+        {
+            Debug.LogError(
+                "WorldManager is missing a StreamingManager reference."
+            );
+
+            return;
+        }
+
+        if (startingRegion == null)
+        {
+            Debug.LogError(
+                "WorldManager is missing a starting region."
+            );
+
+            return;
+        }
+
+        LoadStartingRegion();
+    }
+
     private void InitializeWorldState()
     {
-        // Create or load runtime world state.
+        worldState = new WorldState();
+    }
+
+    private void LoadStartingRegion()
+    {
+        currentRegion = startingRegion;
+
+        streamingManager.LoadRegion(startingRegion);
     }
 
     public WorldRegionDefinition GetRegion(string regionID)
     {
-        // Query WorldDatabase.
+        if (worldDatabase == null)
+            return null;
 
-        return null;
+        return worldDatabase.GetRegion(regionID);
     }
 
     public WorldLocationData GetLocation(string locationID)
     {
-        // Query WorldDatabase.
+        if (worldDatabase == null)
+            return null;
+
+        return worldDatabase.GetLocation(locationID);
+    }
+
+    public WorldRegionDefinition GetRegionAt(
+        WorldCoordinate coordinate)
+    {
+        if (worldDatabase == null)
+            return null;
+
+        foreach (WorldRegionDefinition region
+                 in worldDatabase.Regions)
+        {
+            if (region == null)
+                continue;
+
+            WorldCoordinate origin =
+                region.WorldOrigin;
+
+            Vector2Int size =
+                region.RegionSizeInTiles;
+
+            bool sameLayer =
+                coordinate.layer == origin.layer;
+
+            bool withinX =
+                coordinate.x >= origin.x &&
+                coordinate.x < origin.x + size.x;
+
+            bool withinZ =
+                coordinate.z >= origin.z &&
+                coordinate.z < origin.z + size.y;
+
+            if (sameLayer && withinX && withinZ)
+                return region;
+        }
 
         return null;
     }
 
-    public WorldRegionDefinition GetRegionAt(WorldCoordinate coordinate)
+    public WorldLocationData GetLocationAt(
+        WorldCoordinate coordinate)
     {
-        // Determine which region contains this coordinate.
+        if (worldDatabase == null)
+            return null;
+
+        foreach (WorldLocationData location
+                 in worldDatabase.Locations)
+        {
+            if (location == null)
+                continue;
+
+            WorldCoordinate position =
+                location.WorldPosition;
+
+            Vector2Int size =
+                location.SizeInTiles;
+
+            bool sameLayer =
+                coordinate.layer == position.layer;
+
+            bool withinX =
+                coordinate.x >= position.x &&
+                coordinate.x < position.x + size.x;
+
+            bool withinZ =
+                coordinate.z >= position.z &&
+                coordinate.z < position.z + size.y;
+
+            if (sameLayer && withinX && withinZ)
+                return location;
+        }
 
         return null;
     }
 
-    public WorldLocationData GetLocationAt(WorldCoordinate coordinate)
+    public bool IsValidCoordinate(
+        WorldCoordinate coordinate)
     {
-        // Determine whether a named authored location
-        // occupies this coordinate.
-
-        return null;
-    }
-
-    public bool IsValidCoordinate(WorldCoordinate coordinate)
-    {
-        // Determine whether this coordinate belongs
-        // to a valid region of the game world.
-
-        return false;
+        return GetRegionAt(coordinate) != null;
     }
 }
