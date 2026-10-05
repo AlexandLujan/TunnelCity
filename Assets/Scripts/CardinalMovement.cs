@@ -26,6 +26,9 @@ public class CardinalMovement : MonoBehaviour
     private float heldTimer;
     private bool hasBoosted;
 
+    private Vector2Int inputDirection;
+    public Vector2Int lastInput;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -41,7 +44,7 @@ public class CardinalMovement : MonoBehaviour
 
     private void Update()
     {
-        Vector2Int inputDirection = GetInputDirection();
+        inputDirection = GetInputDirection();
 
         if (inputDirection == Vector2Int.zero)
         {
@@ -50,6 +53,11 @@ public class CardinalMovement : MonoBehaviour
             hasBoosted = false;
 
             return;
+        }
+
+        if(inputDirection != Vector2Int.zero && inputDirection != lastInput) 
+        {
+            lastInput = inputDirection;
         }
 
         if (inputDirection != heldDirection)
@@ -173,5 +181,10 @@ public class CardinalMovement : MonoBehaviour
     {
         Vector3 center = worldGrid.GetCellCenterWorld(cell);
         return new Vector2(center.x, center.y);
+    }
+
+    public Vector2Int GetLastInput()
+    {
+        return lastInput;
     }
 }
