@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorldDatabase
   regions:
   - {fileID: 11400000, guid: 14762e71196b07b41934af0047108c0e, type: 2}
+  - {fileID: 11400000, guid: c76f1be15e931b44b9046dc10577fba0, type: 2}
+  - {fileID: 11400000, guid: 27dc0e9313a55714bb18dfe1b74029a3, type: 2}
   locations: []

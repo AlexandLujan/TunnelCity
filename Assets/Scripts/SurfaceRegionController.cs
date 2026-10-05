@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SurfaceRegionController : MonoBehaviour
@@ -6,51 +7,85 @@ public class SurfaceRegionController : MonoBehaviour
     [SerializeField]
     private WorldRegionDefinition regionDefinition;
 
-    [Header("Surface")]
-    [SerializeField]
-    private SurfaceChunkRenderer surfaceChunkRenderer;
-
     private SurfaceChunkManager surfaceChunkManager;
 
     private void Start()
     {
-        Debug.Log("SurfaceRegionController started.");
+        Debug.Log(
+            $"SurfaceRegionController started for " +
+            $"{regionDefinition?.name ?? "Unknown Region"}."
+        );
 
         if (regionDefinition == null)
         {
-            Debug.LogError("SurfaceRegionController is missing a WorldRegionDefinition.");
+            Debug.LogError(
+                "SurfaceRegionController is missing a WorldRegionDefinition."
+            );
+
             return;
         }
 
-        if (surfaceChunkRenderer == null)
+        SurfaceChunkRenderer[] allRenderers =
+            FindObjectsByType<SurfaceChunkRenderer>();
+
+        List<SurfaceChunkRenderer> regionRenderers =
+            new List<SurfaceChunkRenderer>();
+
+        foreach (SurfaceChunkRenderer renderer in allRenderers)
         {
-            Debug.LogError("SurfaceRegionController is missing a SurfaceChunkRenderer.");
+            if (renderer.gameObject.scene == gameObject.scene)
+            {
+                regionRenderers.Add(renderer);
+            }
+        }
+
+        SurfaceChunkRenderer[] surfaceChunkRenderers =
+            regionRenderers.ToArray();
+
+        if (surfaceChunkRenderers.Length == 0)
+        {
+            Debug.LogError(
+                $"No SurfaceChunkRenderers were found for " +
+                $"{regionDefinition.name}."
+            );
+
             return;
         }
+
+        Debug.Log(
+            $"Found {surfaceChunkRenderers.Length} " +
+            $"SurfaceChunkRenderer(s) for " +
+            $"{regionDefinition.name}."
+        );
 
         surfaceChunkManager =
             new SurfaceChunkManager(
-                surfaceChunkRenderer,
+                surfaceChunkRenderers,
                 regionDefinition
             );
 
-        Debug.Log("SurfaceChunkManager created.");
-
         surfaceChunkManager.Initialize();
-
-        Debug.Log("SurfaceChunkManager initialized.");
 
         StreamingManager streamingManager =
             FindAnyObjectByType<StreamingManager>();
 
         if (streamingManager == null)
         {
-            Debug.LogError("No StreamingManager was found.");
+            Debug.LogError(
+                "No StreamingManager was found."
+            );
+
             return;
         }
 
-        streamingManager.SetSurfaceChunkManager(surfaceChunkManager);
+        streamingManager.RegisterSurfaceRegion(
+            regionDefinition,
+            surfaceChunkManager
+        );
 
-        Debug.Log("SurfaceChunkManager registered with StreamingManager.");
+        Debug.Log(
+            $"SurfaceChunkManager registered for " +
+            $"{regionDefinition.name}."
+        );
     }
 }
