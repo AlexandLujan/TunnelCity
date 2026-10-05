@@ -7,7 +7,7 @@ public class RaiderDrillAI : MonoBehaviour
     public Animator anim;
     public float upSpeed, sideSpeed;
     public Transform target, shootPoint1, shootPoint2;
-    public GameObject boulder;
+    public GameObject boulder, boulder2;
     public bool isFacingRight, isMoving = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -47,7 +47,6 @@ public class RaiderDrillAI : MonoBehaviour
     public IEnumerator Jump()
     {
         isMoving = true;
-        yield return new WaitForSeconds(1f);
         rb.linearVelocityY = upSpeed;
         if (isFacingRight)
         {
@@ -58,10 +57,10 @@ public class RaiderDrillAI : MonoBehaviour
             rb.linearVelocityX = -sideSpeed / 2;
         }
         anim.SetBool("Jump", true);
-        yield return new WaitForSeconds(0.8f);
+        yield return new WaitForSeconds(0.9f);
         anim.SetBool("Jump", false);
-        Instantiate(boulder, shootPoint1.position, shootPoint1.rotation);
-        Instantiate(boulder, shootPoint1.position, shootPoint1.rotation);
+        Instantiate(boulder, shootPoint1.position, shootPoint1.rotation).GetComponent<Rigidbody2D>().linearVelocityY = upSpeed/1.5f;
+        Instantiate(boulder2, shootPoint2.position, shootPoint2.rotation).GetComponent<Rigidbody2D>().linearVelocityY = upSpeed/1.5f;
 
         rb.linearVelocityX = 0;
         isMoving = false;
