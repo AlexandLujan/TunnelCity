@@ -18,7 +18,7 @@ MonoBehaviour:
   worldOrigin:
     x: 316
     layer: 0
-    z: -194
+    z: -2
   regionSizeInChunks: {x: 10, y: 18}
   chunkSize: 32
   sceneName: Mountains
