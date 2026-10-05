@@ -6,10 +6,15 @@ using UnityEngine;
     menuName = "Cave/Cave Definition")]
 public class CaveDefinition : ScriptableObject
 {
+    [SerializeField]
     private CaveType caveType;
+    [SerializeField]
     private int chunkSize;
+    [SerializeField]
     private Vector2Int chunkDimensions;
+    [SerializeField]
     private int boundaryThickness;
+    [SerializeField]
     private CaveTileSet caveTileSet;
 
     public CaveType CaveType => caveType;
