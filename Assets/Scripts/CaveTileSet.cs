@@ -73,4 +73,7 @@ public class CaveTileSet : ScriptableObject
 
     [Header("Isolated Wall")]
     public TileBase singularWall;
+
+    [Header("Rough Stone")]
+    public TileBase roughStone;
 }

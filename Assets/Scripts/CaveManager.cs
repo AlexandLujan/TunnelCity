@@ -2,19 +2,26 @@ using UnityEngine;
 
 public class CaveManager : MonoBehaviour
 {
-    [Header("Cave Systems")]
-    [SerializeField]
-    private CaveGenerator caveGenerator;
+    [Header("References")]
 
     [SerializeField]
-    private CaveChunkManager chunkManager;
+    private CaveGenerator caveGenerator;
 
     [SerializeField]
     private CaveRenderer caveRenderer;
 
     [Header("Cave Definition")]
+
     [SerializeField]
     private CaveDefinition caveDefinition;
+
+    [Header("Initial Cave")]
+
+    [SerializeField]
+    private int caveSeed = 12345;
+
+    [SerializeField]
+    private int initialLayerIndex = 0;
 
     private CaveData currentCave;
     private CaveLayerData currentLayer;
@@ -24,68 +31,258 @@ public class CaveManager : MonoBehaviour
 
     private void Awake()
     {
+        if (caveGenerator == null)
+            caveGenerator = GetComponent<CaveGenerator>();
+
+        if (caveRenderer == null)
+            caveRenderer = GetComponent<CaveRenderer>();
+    }
+
+    private void Start()
+    {
+        Debug.Log("CaveManager.Start()");
         InitializeCave();
     }
 
-    private void InitializeCave()
+    public void InitializeCave()
     {
-        // Create the runtime CaveData object.
-        // Store the CaveDefinition.
-        // Initialize the cave seed.
-        // Create the DataOnly layers.
+        Debug.Log(
+            $"InitializeCave() | " +
+            $"Definition: {caveDefinition?.name} | " +
+            $"Size: {caveDefinition?.WidthInTiles} x {caveDefinition?.DepthInTiles}"
+        );
+
+        if (!HasRequiredReferences())
+            return;
+
+        currentCave = new CaveData(
+            caveSeed,
+            caveDefinition
+        );
+
+        int initialLayerSeed =
+            GenerateLayerSeed(initialLayerIndex);
+
+        CaveLayerData initialLayer =
+            new CaveLayerData(
+                initialLayerIndex,
+                initialLayerSeed,
+                caveDefinition.WidthInTiles,
+                caveDefinition.DepthInTiles,
+                caveDefinition.CaveType
+            );
+
+        currentCave.AddLayer(initialLayer);
+
+        ActivateLayer(initialLayerIndex);
     }
 
-    public void LoadLayer(int layerIndex)
+    public CaveLayerData GetLayer(int layerIndex)
     {
-        // Find the requested layer.
+        if (currentCave == null)
+            return null;
 
-        // If the layer is DataOnly:
-        //     do NOT automatically generate it here
-        //     unless generation is explicitly requested.
-
-        // Cache/deactivate the current layer.
-
-        // Set the requested layer as current.
-
-        // Tell the chunk manager which layer is active.
-
-        // Tell the renderer to display the active layer/chunks.
+        return currentCave.GetLayer(layerIndex);
     }
 
-    public void GenerateLayer(int layerIndex)
+    public bool HasLayer(int layerIndex)
     {
-        // Find the requested CaveLayerData.
-
-        // If it has already been generated:
-        //     return.
-
-        // Ask CaveGenerator to carve the layer.
-
-        // Change its state from DataOnly -> Generated.
+        return currentCave != null &&
+               currentCave.HasLayer(layerIndex);
     }
 
-    public void BlastEntrance(DrilledOpening opening)
+    public CaveLayerData CreateLayer(
+        int layerIndex)
     {
-        // Determine the target layer from the opening direction.
+        if (currentCave == null ||
+            caveDefinition == null)
+        {
+            return null;
+        }
 
-        // Determine what exists at the destination.
+        CaveLayerData existing =
+            currentCave.GetLayer(layerIndex);
 
-        // If destination is normal procedural cave:
-        //     GenerateLayer(targetLayerIndex)
-        //     Create CaveEntrance.
+        if (existing != null)
+            return existing;
 
-        // If destination is a named location:
-        //     Create LocationEntrance.
+        int layerSeed =
+            GenerateLayerSeed(layerIndex);
 
-        // Mark the DrilledOpening as blasted.
+        CaveLayerData newLayer =
+            new CaveLayerData(
+                layerIndex,
+                layerSeed,
+                caveDefinition.WidthInTiles,
+                caveDefinition.DepthInTiles,
+                caveDefinition.CaveType
+            );
+
+        currentCave.AddLayer(newLayer);
+
+        return newLayer;
     }
 
-    public void TravelThroughEntrance(CaveEntrance entrance)
+    public bool ActivateLayer(int layerIndex)
     {
-        // Determine which side of the entrance the player is currently on.
+        if (!HasRequiredReferences())
+            return false;
 
-        // Load the opposite layer.
+        if (currentCave == null)
+            return false;
 
-        // Move the player to the corresponding entrance position.
+        CaveLayerData targetLayer =
+            currentCave.GetLayer(layerIndex);
+
+        if (targetLayer == null)
+            return false;
+
+        Debug.Log(
+            $"Activating layer {targetLayer.layerIndex} | " +
+            $"State before activation: {targetLayer.state}"
+        );
+
+        // The previous layer remains stored,
+        // but is no longer active.
+        if (currentLayer != null &&
+            currentLayer != targetLayer)
+        {
+            currentLayer.state =
+                CaveLayerState.Cached;
+        }
+
+        // Only generate layers that have never
+        // previously been generated.
+        if (targetLayer.state ==
+            CaveLayerState.DataOnly)
+        {
+            caveGenerator.GenerateCave(
+                targetLayer
+            );
+        }
+
+        currentLayer = targetLayer;
+
+        currentLayer.state =
+            CaveLayerState.Active;
+
+        caveRenderer.SetLayer(
+            currentLayer
+        );
+
+        caveRenderer.RenderCave();
+
+        return true;
+    }
+
+    public bool ChangeLayer(int targetLayerIndex)
+    {
+        if (currentCave == null)
+            return false;
+
+        CaveLayerData targetLayer =
+            currentCave.GetLayer(
+                targetLayerIndex
+            );
+
+        if (targetLayer == null)
+        {
+            targetLayer =
+                CreateLayer(targetLayerIndex);
+
+            if (targetLayer == null)
+                return false;
+        }
+
+        return ActivateLayer(
+            targetLayerIndex
+        );
+    }
+
+    private int GenerateLayerSeed(
+        int layerIndex)
+    {
+        unchecked
+        {
+            return caveSeed +
+                   (layerIndex * 73856093);
+        }
+    }
+
+    private bool HasRequiredReferences()
+    {
+        if (caveGenerator == null ||
+            caveRenderer == null ||
+            caveDefinition == null)
+        {
+            Debug.LogWarning(
+                "CaveManager: Missing assignments.",
+                this
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool BlastEntrance(int targetLayerIndex)
+    {
+        return ChangeLayer(targetLayerIndex);
+    }
+
+    public bool BlastEntrance(OpeningDirection direction)
+    {
+        if (currentLayer == null)
+            return false;
+
+        int targetLayerIndex = currentLayer.layerIndex;
+
+        switch (direction)
+        {
+            case OpeningDirection.Down:
+                targetLayerIndex--;
+
+                break;
+
+            case OpeningDirection.Up:
+                targetLayerIndex++;
+
+                break;
+
+            default:
+                return false;
+        }
+
+        return ChangeLayer(targetLayerIndex);
+    }
+
+    public bool BlastEntrance(DrilledOpening entrance)
+    {
+        if (entrance.SourceLayerIndex != currentLayer.layerIndex) return false;
+        if (entrance == null) return false;
+        if (currentLayer == null) return false;
+        if (entrance.HasBeenBlasted) return false;
+
+        int targetLayerIndex = entrance.SourceLayerIndex;
+
+        switch (entrance.Direction)
+        {
+            case OpeningDirection.Down:
+                targetLayerIndex--;
+                break;
+
+            case OpeningDirection.Up:
+                targetLayerIndex++;
+                break;
+
+            default:
+                return false;
+        }
+
+        entrance.MarkBlasted();
+
+        return ChangeLayer(targetLayerIndex);
     }
 }
+

@@ -40,23 +40,10 @@ public class SurfaceChunkManager
 
     public void Initialize()
     {
-        Debug.Log(
-            $"{regionDefinition.name} WORLD ORIGIN RAW | " +
-            $"X: {regionDefinition.WorldOrigin.x} | " +
-            $"Layer: {regionDefinition.WorldOrigin.layer} | " +
-            $"Z: {regionDefinition.WorldOrigin.z}"
-        );
-
         regionOrigin = new Vector2Int(regionDefinition.WorldOrigin.x, regionDefinition.WorldOrigin.z);
 
         Vector2Int regionSize =
             regionDefinition.RegionSizeInChunks;
-
-        Debug.Log(
-            $"Initializing surface region: " +
-            $"{regionSize.x} x {regionSize.y} chunks. " +
-            $"Origin: {regionOrigin}"
-        );
 
         for (int z = 0; z < regionSize.y; z++)
         {
@@ -68,10 +55,6 @@ public class SurfaceChunkManager
                 CaptureChunk(coordinate);
             }
         }
-
-        Debug.Log(
-            $"Captured {chunks.Count} surface chunks."
-        );
     }
 
     public void PrepareForStreaming()

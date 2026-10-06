@@ -6,5 +6,6 @@ public enum CaveTileType
     Dirt,
     Rock,
     Crystal,
-    MountainRock
+    MountainRock,
+    RoughStone
 }

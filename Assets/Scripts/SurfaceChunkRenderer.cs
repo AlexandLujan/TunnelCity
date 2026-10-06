@@ -69,11 +69,6 @@ public class SurfaceChunkRenderer : MonoBehaviour
             );
         }
 
-        Debug.Log(
-            $"{gameObject.name} captured chunk {coordinate}: " +
-            $"{capturedGroundTiles} ground tiles."
-        );
-
         return chunkData;
     }
 
@@ -110,11 +105,6 @@ public class SurfaceChunkRenderer : MonoBehaviour
                 chunkData.GetMountainTile(cellPosition)
             );
         }
-
-        Debug.Log(
-            $"{gameObject.name} rendered chunk {chunkData.Coordinate}: " +
-            $"{renderedGroundTiles} ground tiles."
-        );
     }
 
     public void ClearChunk(BoundsInt bounds)

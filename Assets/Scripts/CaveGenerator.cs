@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class CaveGenerator : MonoBehaviour
 {
-    public const int Width = 11;
-    public const int Height = 11;
-
     [Header("Procedural Generation")]
 
     [SerializeField]
@@ -15,138 +12,196 @@ public class CaveGenerator : MonoBehaviour
     [Range(0f, 1f)]
     private float chamberChance = 0.15f;
 
-    [SerializeField]
-    private bool generateOnStart = true;
-
-    // Cave Data
-    private bool[,] solid;
-
     public bool IsGenerated { get; private set; }
 
-    // Initialize
-    private void Awake()
+    public void GenerateCave(CaveLayerData layer)
     {
-        solid = new bool[Width, Height];
-    }
+        Debug.Log(
+            $"GenerateCave() | Layer {layer.layerIndex} | " +
+            $"{layer.width} x {layer.depth}"
+        );
 
-    private void Start()
-    {
-        if (generateOnStart) GenerateCave();
-    }
+        if (layer == null)
+        {
+            Debug.LogWarning(
+                "CaveGenerator: Cannot generate a null CaveLayerData.",
+                this
+            );
 
-    // Procedural Generation
-    public void GenerateCave()
-    {
+            return;
+        }
+
         IsGenerated = false;
 
-        for (int x = 0; x < Width; x++)
+        // Save Unity's current random state so cave generation
+        // does not permanently affect other random gameplay.
+        Random.State previousRandomState = Random.state;
+
+        Random.InitState(layer.layerSeed);
+
+        CaveTileType solidTileType =
+            GetSolidTileType(layer.caveType);
+
+        // Initialize the entire layer.
+        //
+        // Outer boundary = RoughStone
+        // Interior = cave-specific material
+        for (int x = 0; x < layer.width; x++)
         {
-            for (int y = 0; y < Height; y++)
+            for (int z = 0; z < layer.depth; z++)
             {
-                solid[x, y] = true;
+                if (IsInterior(layer, x, z))
+                {
+                    layer.SetTile(
+                        x,
+                        z,
+                        solidTileType
+                    );
+                }
+                else
+                {
+                    layer.SetTile(
+                        x,
+                        z,
+                        CaveTileType.RoughStone
+                    );
+                }
             }
         }
 
-        Vector2Int position = new Vector2Int(Width / 2, Height / 2);
-        solid[position.x, position.y] = false;
+        // Begin the random walk in the center.
+        Vector2Int position = new Vector2Int(
+            layer.width / 2,
+            layer.depth / 2
+        );
+
+        layer.SetTile(
+            position.x,
+            position.y,
+            CaveTileType.Open
+        );
 
         for (int i = 0; i < walkSteps; i++)
         {
             Vector2Int direction = GetRandomDirection();
-            Vector2Int nextPosition = position + direction;
 
-            if (!IsInterior(nextPosition.x, nextPosition.y)) continue;
+            Vector2Int nextPosition =
+                position + direction;
+
+            if (!IsInterior(
+                    layer,
+                    nextPosition.x,
+                    nextPosition.y))
+            {
+                continue;
+            }
+
             position = nextPosition;
 
-            solid[position.x, position.y] = false;
+            layer.SetTile(
+                position.x,
+                position.y,
+                CaveTileType.Open
+            );
 
-            if (Random.value < chamberChance) CarveChamber(position);
-
-            // Debug.Log("Cave Generation Completed.");
+            if (Random.value < chamberChance)
+            {
+                CarveChamber(
+                    layer,
+                    position
+                );
+            }
         }
-        IsGenerated = true;
-    }
 
-    // FUTURE: GenerateCave(CaveLayerData layer, CaveDefinition definition)
+        layer.state = CaveLayerState.Generated;
+
+        IsGenerated = true;
+
+        // Restore Unity's random state.
+        Random.state = previousRandomState;
+    }
 
     private Vector2Int GetRandomDirection()
     {
         int direction = Random.Range(0, 4);
 
-        switch(direction)
+        switch (direction)
         {
             case 0:
                 return Vector2Int.up;
+
             case 1:
                 return Vector2Int.right;
+
             case 2:
                 return Vector2Int.down;
+
             default:
                 return Vector2Int.left;
         }
     }
 
-    private void CarveChamber(Vector2Int center)
+    private void CarveChamber(
+        CaveLayerData layer,
+        Vector2Int center)
     {
         for (int x = -1; x <= 1; x++)
         {
-            for (int y = -1; y <= 1; y++)
+            for (int z = -1; z <= 1; z++)
             {
                 int cellX = center.x + x;
-                int cellY = center.y + y;
+                int cellZ = center.y + z;
 
-                if (!IsInterior(cellX, cellY)) continue;
+                if (!IsInterior(
+                        layer,
+                        cellX,
+                        cellZ))
+                {
+                    continue;
+                }
 
-                if (Random.value < 0.75f) solid[cellX, cellY] = false;
+                if (Random.value < 0.75f)
+                {
+                    layer.SetTile(
+                        cellX,
+                        cellZ,
+                        CaveTileType.Open
+                    );
+                }
             }
         }
     }
 
-    public bool InBounds(int x, int y)
+    private bool IsInterior(
+        CaveLayerData layer,
+        int x,
+        int z)
     {
-        return x >= 0 
-            && x < Width 
-            && y >= 0 
-            && y < Height;
+        return x > 0 &&
+               x < layer.width - 1 &&
+               z > 0 &&
+               z < layer.depth - 1;
     }
 
-    public bool IsInterior(int x, int y)
-    {
-        return x > 0
-            && x < Width - 1
-            && y > 0
-            && y < Height - 1;
-    }
-
-    public bool IsSolid(int x, int y)
-    {
-        if (!InBounds(x, y)) return true;
-
-        return solid[x, y];
-    }
-
-    public bool IsOpen(int x, int y) { return InBounds(x, y) && !solid[x, y]; }
-
-    public bool MineCell(int x, int y)
-    {
-        if (!IsGenerated) return false;
-        if (!IsInterior(x, y)) return false;
-        if (!solid[x, y]) return false;
-
-        solid[x, y] = false;
-        return true;
-    }
-
-    private CaveTileType GetSolidTileType(CaveType caveType)
+    private CaveTileType GetSolidTileType(
+        CaveType caveType)
     {
         return caveType switch
         {
-            CaveType.Dirt => CaveTileType.Dirt,
-            CaveType.Rock => CaveTileType.Rock,
-            CaveType.Crystal => CaveTileType.Crystal,
-            CaveType.MountainRock => CaveTileType.MountainRock,
+            CaveType.Dirt =>
+                CaveTileType.Dirt,
 
-            _ => CaveTileType.Rock
+            CaveType.Rock =>
+                CaveTileType.Rock,
+
+            CaveType.Crystal =>
+                CaveTileType.Crystal,
+
+            CaveType.MountainRock =>
+                CaveTileType.MountainRock,
+
+            _ =>
+                CaveTileType.RoughStone
         };
     }
 }

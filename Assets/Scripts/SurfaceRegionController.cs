@@ -11,10 +11,6 @@ public class SurfaceRegionController : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log(
-            $"SurfaceRegionController started for " +
-            $"{regionDefinition?.name ?? "Unknown Region"}."
-        );
 
         if (regionDefinition == null)
         {

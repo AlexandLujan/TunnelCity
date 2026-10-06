@@ -32,26 +32,28 @@ public class DrilledOpening : MonoBehaviour
         Vector2Int tile,
         OpeningDirection openingDirection)
     {
-        // Store source layer.
+        sourceLayerIndex = layerIndex;
+        sourceTile = tile;
+        direction = openingDirection;
 
-        // Store source tile.
-
-        // Store direction.
-
-        // Reset state.
+        hasExplosive = false;
+        hasBeenBlasted = false;
     }
 
     public void AttachExplosive()
     {
-        // Prevent attaching after blasting.
+        if (hasBeenBlasted)
+            return;
 
-        // Mark explosive as attached.
+        if (hasExplosive)
+            return;
+
+        hasExplosive = true;
     }
 
     public void MarkBlasted()
     {
-        // Remove explosive state.
-
-        // Mark this opening as blasted.
+        hasExplosive = false;
+        hasBeenBlasted = true;
     }
 }
