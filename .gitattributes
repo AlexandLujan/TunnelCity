@@ -1,2 +1,6 @@
 *.unity filter=lfs diff=lfs merge=lfs -text
 Assets/Scenes/Wilderness.unity filter=lfs diff=lfs merge=lfs -text
+Assets/Scenes/Core.unity filter=lfs diff=lfs merge=lfs -text
+Assets/Scenes/Grassland.unity filter=lfs diff=lfs merge=lfs -text
+Assets/Scenes/Grasslands.unity filter=lfs diff=lfs merge=lfs -text
+Assets/Scenes/Mountains.unity filter=lfs diff=lfs merge=lfs -text
