@@ -12,35 +12,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a51418abb9f67ca4ba5746a65110b9af, type: 3}
   m_Name: NewCaveTileSet
   m_EditorClassIdentifier: Assembly-CSharp::CaveTileSet
-  floor: {fileID: 11400000, guid: 8b9a248bbe0f88d408007e5ab3517464, type: 2}
-  solidWall: {fileID: 11400000, guid: 3dcdef9408059ca46b832ec179db8e79, type: 2}
-  northWall: {fileID: 11400000, guid: 767e7d33b52b4394185ddbb4edc65b5d, type: 2}
-  southWall: {fileID: 11400000, guid: 2932060b98e0fc74ebb4b5e489c4792e, type: 2}
-  eastWall: {fileID: 11400000, guid: 998dc9f122450334097eedb34674df8a, type: 2}
-  westWall: {fileID: 11400000, guid: da5edb87e4eaa4142b3cdc23bc45c3dc, type: 2}
-  innerNW: {fileID: 11400000, guid: a6a8125564f1a574dad58a83a12c61f1, type: 2}
-  innerSW: {fileID: 11400000, guid: afc1af7d9b6087c4b88255ff6fea830a, type: 2}
-  innerNE: {fileID: 11400000, guid: 7d5b6d5de1e535244ac7c45583fc1e65, type: 2}
-  innerSE: {fileID: 11400000, guid: f7871f183dd4d5f46a1df364be05b263, type: 2}
-  outerNW: {fileID: 11400000, guid: c5cde3e1694c8574cb2a11ac28c7c6bf, type: 2}
-  outerSW: {fileID: 11400000, guid: 6b8e69dd0dfa91b448a21023350aee85, type: 2}
-  outerNE: {fileID: 11400000, guid: 12d6b16769788914484a673d9a5c665f, type: 2}
-  outerSE: {fileID: 11400000, guid: 846f1a7e6f996434691b589c05257d81, type: 2}
-  northSouthWall: {fileID: 11400000, guid: 2dffc6bb465a02944910dfbfc00b0a7a, type: 2}
-  eastWestWall: {fileID: 11400000, guid: a5b340a879cd480449685bc93bd1a49d, type: 2}
-  capConnectedNorth: {fileID: 11400000, guid: 41570f9235de13543bd5e43f4dd17935, type: 2}
-  capConnectedSouth: {fileID: 11400000, guid: 2d8717e11364f784890f5c6f010845d7, type: 2}
-  capConnectedEast: {fileID: 11400000, guid: 96a8fffad126d09428ae636029e51480, type: 2}
-  capConnectedWest: {fileID: 11400000, guid: 8ddeffbd092c8204687bfe48376342d9, type: 2}
-  innerNW_NE: {fileID: 11400000, guid: 5417ab9792a8d7b4eadebad3abebacad, type: 2}
-  innerNE_SE: {fileID: 11400000, guid: e7c23898f09cd7e48b4204040abea646, type: 2}
-  innerSE_SW: {fileID: 11400000, guid: 48b63ba689956784bb094a4ebaaca41c, type: 2}
-  innerSW_NW: {fileID: 11400000, guid: f32c6c8704551744ca3df0ed2798f1f2, type: 2}
-  innerNW_SE: {fileID: 11400000, guid: c6c6c98004b760844bcdc52e19a69cb5, type: 2}
-  innerNE_SW: {fileID: 11400000, guid: 2a2ac733c9f921c43a1498896b4ebcaa, type: 2}
+  floor: {fileID: 11400000, guid: a32f87d13ba58204a804e913b343a99c, type: 2}
+  solidWall: {fileID: 11400000, guid: 981fefed45118c64b98e9d37d96fd342, type: 2}
+  northWall: {fileID: 11400000, guid: ae1444f0590ba25459fabf2e7175947a, type: 2}
+  southWall: {fileID: 11400000, guid: d66357187ec19cb41a14c9d60118cd6d, type: 2}
+  eastWall: {fileID: 11400000, guid: f55580ee98d607a488bca1fd9a0d78b1, type: 2}
+  westWall: {fileID: 11400000, guid: 063d6acaddfe57f448499d4668a8a570, type: 2}
+  innerNW: {fileID: 11400000, guid: 73733cfd07e237f4c9c8823fe5f05408, type: 2}
+  innerSW: {fileID: 11400000, guid: 89e9de9a5b393f34fb5c0d9781492367, type: 2}
+  innerNE: {fileID: 11400000, guid: 34f16bd69510eb34eadcf34d62ef4a25, type: 2}
+  innerSE: {fileID: 11400000, guid: 68cfdec481449294d91bce5b7d00f058, type: 2}
+  outerNW: {fileID: 11400000, guid: f98544a4f9b2fa740a05f3474a58ce7a, type: 2}
+  outerSW: {fileID: 11400000, guid: 83e0414746ef206449ca11ccff13818b, type: 2}
+  outerNE: {fileID: 11400000, guid: 8a0e682f9ec13f74b8dd692a7c5e27a9, type: 2}
+  outerSE: {fileID: 11400000, guid: 8ace77122e1b77e4c94b18666c479d44, type: 2}
+  northSouthWall: {fileID: 11400000, guid: 6db03b2156fdfdc4caac3df4704db957, type: 2}
+  eastWestWall: {fileID: 11400000, guid: c346faa1aa5bed44b8b25673ff0019ac, type: 2}
+  capConnectedNorth: {fileID: 11400000, guid: 47481cba4e4d9c746b5005ccfeec75b0, type: 2}
+  capConnectedSouth: {fileID: 11400000, guid: dd3fa973950e1a342aa936bb6a91ceb3, type: 2}
+  capConnectedEast: {fileID: 11400000, guid: 098407b669b865c49b7689ee52749a6e, type: 2}
+  capConnectedWest: {fileID: 11400000, guid: 0500bdfebf88f054ab6c41c80814eafb, type: 2}
+  innerNW_NE: {fileID: 11400000, guid: a73ed1d982c08204fbf34d92110875bf, type: 2}
+  innerNE_SE: {fileID: 11400000, guid: 66bd310e051226d409c88d6667c48e72, type: 2}
+  innerSE_SW: {fileID: 11400000, guid: 611d98bc13dba244080162d9f3d1ce76, type: 2}
+  innerSW_NW: {fileID: 11400000, guid: b1b445fa191d66c4b83d7ab1671328a3, type: 2}
+  innerNW_SE: {fileID: 11400000, guid: dc1bd51621fe7de4c80dad226db2f6bd, type: 2}
+  innerNE_SW: {fileID: 11400000, guid: 34d0b168fdcbced41b839f9083839e5c, type: 2}
   innerNW_NE_SE: {fileID: 11400000, guid: a34dbf0194c8fce4783ab5114dbd6a53, type: 2}
   innerNE_SE_SW: {fileID: 11400000, guid: 8709d794d7d70ac4d8547a7b320a0e25, type: 2}
   innerSE_SW_NW: {fileID: 11400000, guid: 1b7908620da6d0548979abd4d1f0509d, type: 2}
   innerSW_NW_NE: {fileID: 11400000, guid: bff2782ae64fd53439c5317fc0ff9ee3, type: 2}
-  innerAllFour: {fileID: 11400000, guid: 6d02fa2c4fcce4b48835ad05779197ea, type: 2}
-  singularWall: {fileID: 11400000, guid: d6818a373dca323419e1a6fb35138f89, type: 2}
+  northNW: {fileID: 11400000, guid: b46b28598c6992d42885883f78c39144, type: 2}
+  northNE: {fileID: 11400000, guid: 367fc479a516cfe4cb8ece5ff70682a7, type: 2}
+  northNWNE: {fileID: 11400000, guid: b25834aa84a7ec043a78b9a7fabe6b0f, type: 2}
+  southSW: {fileID: 11400000, guid: f9b11bf55f86fb949b7ba84e509f973f, type: 2}
+  southSE: {fileID: 11400000, guid: 4d39b683c1d374c41ab37432a6114af6, type: 2}
+  southSWSE: {fileID: 11400000, guid: 8c9d0e77ad769924a82e2a61dbd02c41, type: 2}
+  eastNE: {fileID: 11400000, guid: 0a9a976e7f9e0c84997fa5a44490475a, type: 2}
+  eastSE: {fileID: 11400000, guid: 757655da16c27fe4785f1b11e65ee0d0, type: 2}
+  eastNESE: {fileID: 11400000, guid: 2185f6c9d74cece4ea2ab593918913f3, type: 2}
+  westNW: {fileID: 11400000, guid: fd11c83bcdbcece4980e67e5d5096bb2, type: 2}
+  westSW: {fileID: 11400000, guid: 03f5586ae7938e146ba367e5ee41c721, type: 2}
+  westNWSW: {fileID: 11400000, guid: 3166d2b3a34ebf945bf6ec9999130fb6, type: 2}
+  innerAllFour: {fileID: 11400000, guid: 2ed0164ac56e4bf44a26c91923ea3a0d, type: 2}
+  singularWall: {fileID: 11400000, guid: 745ceb68f89c19a4ab0d1bb21f1c39cd, type: 2}
+  roughStone: {fileID: 11400000, guid: f8fe0861158aa274788a84f6b06d9468, type: 2}

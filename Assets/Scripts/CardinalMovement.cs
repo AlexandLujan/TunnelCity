@@ -83,6 +83,30 @@ public class CardinalMovement : MonoBehaviour
         }
     }
 
+    public void SetWorldGrid(Grid grid)
+    {
+        worldGrid = grid;
+
+        if (worldGrid == null)
+            return;
+
+        if (rb == null)
+            return;
+
+        currentCell =
+            worldGrid.WorldToCell(
+                rb.position
+            );
+
+        Debug.Log(
+            $"WORLD GRID SET | " +
+            $"Grid: {worldGrid.name} | " +
+            $"Grid World Pos: {worldGrid.transform.position} | " +
+            $"Player Pos: {rb.position} | " +
+            $"Calculated Cell: {currentCell}"
+        );
+    }
+
     private Vector2Int GetInputDirection()
     {
         Keyboard keyboard = Keyboard.current;
@@ -101,11 +125,30 @@ public class CardinalMovement : MonoBehaviour
     {
         if (isMoving) return;
 
-        Vector3Int targetCell = currentCell + new Vector3Int(direction.x, direction.y, 0);
+        Vector3Int targetCell =
+            currentCell +
+            new Vector3Int(
+                direction.x,
+                direction.y,
+                0
+            );
 
-        Debug.Log($"Moving from {currentCell} to {targetCell}");
+        Vector3 targetWorld =
+            GetCellCenter(targetCell);
 
-        StartCoroutine(MoveToCell(targetCell));
+        Debug.Log(
+            $"MOVE | " +
+            $"Player: {rb.position} | " +
+            $"Current Cell: {currentCell} | " +
+            $"Target Cell: {targetCell} | " +
+            $"Target World: {targetWorld} | " +
+            $"Grid: {worldGrid?.name} | " +
+            $"Grid Pos: {worldGrid?.transform.position}"
+        );
+
+        StartCoroutine(
+            MoveToCell(targetCell)
+        );
     }
 
     private IEnumerator MoveToCell(Vector3Int targetCell)

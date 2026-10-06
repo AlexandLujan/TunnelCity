@@ -54,9 +54,26 @@ public class CaveTileSet : ScriptableObject
     public TileBase innerSE_SW_NW;
     public TileBase innerSW_NW_NE;
 
+    [Header("Cardinal + Corner Tile(s)")]
+    public TileBase northNW;
+    public TileBase northNE;
+    public TileBase northNWNE;
+    public TileBase southSW;
+    public TileBase southSE;
+    public TileBase southSWSE;
+    public TileBase eastNE;
+    public TileBase eastSE;
+    public TileBase eastNESE;
+    public TileBase westNW;
+    public TileBase westSW;
+    public TileBase westNWSW;
+
     [Header("Four-Way Inner Corner")]
     public TileBase innerAllFour;
 
     [Header("Isolated Wall")]
     public TileBase singularWall;
+
+    [Header("Rough Stone")]
+    public TileBase roughStone;
 }
