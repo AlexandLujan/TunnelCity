@@ -52,9 +52,8 @@ public class CaveGenerator : MonoBehaviour
 
         for (int i = 0; i < walkSteps; i++)
         {
-            Vector2Int Direction = GetRandomDirection();
-
-            Vector2Int nextPosition = position + Direction;
+            Vector2Int direction = GetRandomDirection();
+            Vector2Int nextPosition = position + direction;
 
             if (!IsInterior(nextPosition.x, nextPosition.y)) continue;
             position = nextPosition;
@@ -62,10 +61,10 @@ public class CaveGenerator : MonoBehaviour
             solid[position.x, position.y] = false;
 
             if (Random.value < chamberChance) CarveChamber(position);
-            IsGenerated = true;
 
             // Debug.Log("Cave Generation Completed.");
         }
+        IsGenerated = true;
     }
 
     private Vector2Int GetRandomDirection()
@@ -128,7 +127,8 @@ public class CaveGenerator : MonoBehaviour
 
     public bool MineCell(int x, int y)
     {
-        if (!IsGenerated || !IsInterior(x, y)) return false;
+        if (!IsGenerated) return false;
+        if (!IsInterior(x, y)) return false;
         if (!solid[x, y]) return false;
 
         solid[x, y] = false;
