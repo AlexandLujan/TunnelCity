@@ -8,5 +8,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/Scenes/GameOverScene.unity
+    guid: a6a3a07c695868d4682ef9fb53a0aa65
+  - enabled: 1
+    path: Assets/Scenes/DrillRaiderFight.unity
+    guid: d81755c5ecb494b4ea65377aaa74188e
+  - enabled: 1
+    path: Assets/Scenes/MeleeRaiderFight.unity
+    guid: 120777255db636d41a92036ffdf3450c
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

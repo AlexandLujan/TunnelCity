@@ -366,3 +366,4 @@ MonoBehaviour:
   isPlayer: 1
   hurtColor: {r: 1, g: 1, b: 1, a: 0.3137255}
   spriteR: {fileID: 6179372277955992487}
+  gameOverSceneName: GameOverScene

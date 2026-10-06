@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class Health : MonoBehaviour
 {
     public int health, maxHealth;
@@ -7,6 +7,7 @@ public class Health : MonoBehaviour
     public bool isPlayer;
     public Color hurtColor;
     public SpriteRenderer spriteR;
+    public string gameOverSceneName;
     float timer;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,6 +41,11 @@ public class Health : MonoBehaviour
             {
                 health -= 1;
                 timer = invincibilityTime;
+            }
+
+            if(health <= 0)
+            {
+                SceneManager.LoadScene(gameOverSceneName);
             }
         }
     }
