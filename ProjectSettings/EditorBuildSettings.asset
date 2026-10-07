@@ -17,5 +17,17 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MeleeRaiderFight.unity
     guid: 120777255db636d41a92036ffdf3450c
+  - enabled: 1
+    path: Assets/Scenes/Wilderness.unity
+    guid: 2eaa707f332f4ea46a2c1f7b8efe2d1c
+  - enabled: 1
+    path: Assets/Scenes/Mountains.unity
+    guid: 5c53bf91e9155ad43ab438979c93d5ad
+  - enabled: 1
+    path: Assets/Scenes/Grasslands.unity
+    guid: afe4f3561a53a7d41972a0fc5ebea999
+  - enabled: 1
+    path: Assets/Scenes/RockCave.unity
+    guid: a87f57cfaafbbb14395a72c15ebf7cc5
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

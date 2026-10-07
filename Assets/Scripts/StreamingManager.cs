@@ -34,7 +34,9 @@ public class StreamingManager : MonoBehaviour
     private void Awake()
     {
         activeChunks =
-            new HashSet<ChunkCoordinate>();
+            new HashSet<
+                ChunkCoordinate
+            >();
 
         surfaceRegions =
             new Dictionary<
@@ -66,6 +68,7 @@ public class StreamingManager : MonoBehaviour
         if (surfaceChunkManager == null)
         {
             TryActivateRegionForPlayer();
+
             return;
         }
 
@@ -74,14 +77,19 @@ public class StreamingManager : MonoBehaviour
                 cardinalMovement.transform.position
             );
 
-        // Player has moved outside the currently active region.
-        if (!surfaceChunkManager.HasChunkData(playerChunk))
+        // Player has moved outside the
+        // currently active region.
+        if (!surfaceChunkManager.HasChunkData(
+                playerChunk))
         {
             TryActivateRegionForPlayer();
+
             return;
         }
 
-        UpdateCurrentChunk(playerChunk);
+        UpdateCurrentChunk(
+            playerChunk
+        );
     }
 
     public void RegisterSurfaceRegion(
@@ -97,8 +105,31 @@ public class StreamingManager : MonoBehaviour
         surfaceRegions[regionDefinition] =
             chunkManager;
 
-        // The manager has already captured its painted data.
-        // Clear the physical Tilemaps so chunks can now be streamed.
+        if (chunkManager.CapturedChunkCount == 0)
+        {
+            Debug.LogError(
+                $"Surface region " +
+                $"{regionDefinition.name} " +
+                $"captured ZERO chunks. " +
+                $"Tilemaps will NOT be cleared."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"Surface region " +
+            $"{regionDefinition.name} " +
+            $"registered with " +
+            $"{chunkManager.CapturedChunkCount} " +
+            $"captured chunks."
+        );
+
+        // The manager has already captured
+        // its painted data.
+        //
+        // Clear the physical Tilemaps so
+        // chunks can now be streamed.
         chunkManager.PrepareForStreaming();
 
         if (cardinalMovement == null)
@@ -109,9 +140,11 @@ public class StreamingManager : MonoBehaviour
                 cardinalMovement.transform.position
             );
 
-        // If the player is currently inside this region,
-        // make it the active surface region.
-        if (chunkManager.HasChunkData(playerChunk))
+        // If the player is currently inside
+        // this region, make it the active
+        // surface region.
+        if (chunkManager.HasChunkData(
+                playerChunk))
         {
             ActivateSurfaceRegion(
                 regionDefinition,
@@ -136,11 +169,13 @@ public class StreamingManager : MonoBehaviour
             return;
         }
 
-        // Unload chunks from the previously active region.
+        // Unload chunks from the previously
+        // active region.
         if (surfaceChunkManager != null)
         {
-            foreach (ChunkCoordinate coordinate
-                     in activeChunks)
+            foreach (
+                ChunkCoordinate coordinate
+                in activeChunks)
             {
                 surfaceChunkManager.Unload(
                     coordinate
@@ -173,9 +208,12 @@ public class StreamingManager : MonoBehaviour
             return;
 
         ChunkCoordinate startingChunk =
-            surfaceChunkManager.WorldToChunkCoordinate(
-                cardinalMovement.transform.position
-            );
+            surfaceChunkManager
+                .WorldToChunkCoordinate(
+                    cardinalMovement
+                        .transform
+                        .position
+                );
 
         InitializeChunks(
             startingChunk
@@ -200,18 +238,26 @@ public class StreamingManager : MonoBehaviour
                 continue;
 
             ChunkCoordinate playerChunk =
-                chunkManager.WorldToChunkCoordinate(
-                    cardinalMovement.transform.position
-                );
+                chunkManager
+                    .WorldToChunkCoordinate(
+                        cardinalMovement
+                            .transform
+                            .position
+                    );
 
             Debug.Log(
-                $"CHECK REGION: {region.Key.name} | " +
+                $"CHECK REGION: " +
+                $"{region.Key.name} | " +
                 $"Chunk: {playerChunk} | " +
-                $"Valid: {chunkManager.HasChunkData(playerChunk)}"
+                $"Valid: " +
+                $"{chunkManager.HasChunkData(playerChunk)}"
             );
 
-            if (!chunkManager.HasChunkData(playerChunk))
+            if (!chunkManager.HasChunkData(
+                    playerChunk))
+            {
                 continue;
+            }
 
             ActivateSurfaceRegion(
                 region.Key,
@@ -236,7 +282,7 @@ public class StreamingManager : MonoBehaviour
             return;
 
         if (string.IsNullOrEmpty(
-            regionDefinition.SceneName))
+                regionDefinition.SceneName))
         {
             return;
         }
@@ -299,7 +345,7 @@ public class StreamingManager : MonoBehaviour
             return;
 
         if (string.IsNullOrEmpty(
-            regionDefinition.SceneName))
+                regionDefinition.SceneName))
         {
             return;
         }
@@ -313,7 +359,8 @@ public class StreamingManager : MonoBehaviour
             return;
 
         bool unloadingCurrentRegion =
-            currentRegion == regionDefinition;
+            currentRegion ==
+            regionDefinition;
 
         AsyncOperation operation =
             SceneManager.UnloadSceneAsync(
@@ -333,6 +380,7 @@ public class StreamingManager : MonoBehaviour
         if (unloadingCurrentRegion)
         {
             currentRegion = null;
+
             surfaceChunkManager = null;
 
             activeChunks.Clear();
@@ -353,8 +401,11 @@ public class StreamingManager : MonoBehaviour
     public void UpdateCurrentChunk(
         ChunkCoordinate coordinate)
     {
-        if (coordinate == currentChunk)
+        if (coordinate ==
+            currentChunk)
+        {
             return;
+        }
 
         currentChunk =
             coordinate;
@@ -367,25 +418,34 @@ public class StreamingManager : MonoBehaviour
         if (surfaceChunkManager == null)
             return;
 
-        HashSet<ChunkCoordinate> desiredChunks =
-            GetDesiredChunks();
+        HashSet<ChunkCoordinate>
+            desiredChunks =
+                GetDesiredChunks();
 
-        foreach (ChunkCoordinate coordinate
-                 in desiredChunks)
+        foreach (
+            ChunkCoordinate coordinate
+            in desiredChunks)
         {
-            if (!activeChunks.Contains(coordinate))
+            if (!activeChunks.Contains(
+                    coordinate))
             {
-                Debug.Log($"Loading surface chunk: {coordinate}");
+                Debug.Log(
+                    $"Loading surface chunk: " +
+                    $"{coordinate}"
+                );
+
                 surfaceChunkManager.Load(
                     coordinate
                 );
             }
         }
 
-        foreach (ChunkCoordinate coordinate
-                 in activeChunks)
+        foreach (
+            ChunkCoordinate coordinate
+            in activeChunks)
         {
-            if (!desiredChunks.Contains(coordinate))
+            if (!desiredChunks.Contains(
+                    coordinate))
             {
                 surfaceChunkManager.Unload(
                     coordinate
@@ -400,8 +460,11 @@ public class StreamingManager : MonoBehaviour
     private HashSet<ChunkCoordinate>
         GetDesiredChunks()
     {
-        HashSet<ChunkCoordinate> desiredChunks =
-            new HashSet<ChunkCoordinate>();
+        HashSet<ChunkCoordinate>
+            desiredChunks =
+                new HashSet<
+                    ChunkCoordinate
+                >();
 
         if (surfaceChunkManager == null)
             return desiredChunks;
@@ -421,7 +484,8 @@ public class StreamingManager : MonoBehaviour
                     );
 
                 if (!surfaceChunkManager
-                    .HasChunkData(coordinate))
+                    .HasChunkData(
+                        coordinate))
                 {
                     continue;
                 }

@@ -14,6 +14,10 @@ public class WorldManager : MonoBehaviour
     [SerializeField]
     private WorldRegionDefinition startingRegion;
 
+    [Header("Surface Regions")]
+    [SerializeField]
+    private WorldRegionDefinition[] surfaceRegions;
+
     private WorldState worldState;
 
     private WorldRegionDefinition currentRegion;
@@ -48,35 +52,66 @@ public class WorldManager : MonoBehaviour
             return;
         }
 
-        LoadStartingRegion();
+        LoadSurfaceRegions();
+
+        currentRegion = startingRegion;
     }
 
     private void InitializeWorldState()
     {
-        worldState = new WorldState();
+        worldState =
+            new WorldState();
     }
 
-    private void LoadStartingRegion()
+    private void LoadSurfaceRegions()
     {
-        currentRegion = startingRegion;
+        if (surfaceRegions == null ||
+            surfaceRegions.Length == 0)
+        {
+            Debug.LogWarning(
+                "WorldManager has no surface regions assigned."
+            );
 
-        streamingManager.LoadRegion(startingRegion);
+            streamingManager.LoadRegion(
+                startingRegion
+            );
+
+            return;
+        }
+
+        foreach (
+            WorldRegionDefinition region
+            in surfaceRegions)
+        {
+            if (region == null)
+                continue;
+
+            streamingManager.LoadRegion(
+                region
+            );
+        }
     }
 
-    public WorldRegionDefinition GetRegion(string regionID)
+    public WorldRegionDefinition GetRegion(
+        string regionID)
     {
         if (worldDatabase == null)
             return null;
 
-        return worldDatabase.GetRegion(regionID);
+        return worldDatabase.GetRegion(
+            regionID
+        );
     }
 
-    public WorldLocationData GetLocation(string locationID)
+    public WorldLocationData GetLocation(
+        string locationID)
     {
         if (worldDatabase == null)
             return null;
 
-        return worldDatabase.GetLocation(locationID);
+        return worldDatabase.GetLocation(
+            locationID
+        );
     }
 
     public WorldRegionDefinition GetRegionAt(
@@ -85,8 +120,9 @@ public class WorldManager : MonoBehaviour
         if (worldDatabase == null)
             return null;
 
-        foreach (WorldRegionDefinition region
-                 in worldDatabase.Regions)
+        foreach (
+            WorldRegionDefinition region
+            in worldDatabase.Regions)
         {
             if (region == null)
                 continue;
@@ -98,18 +134,27 @@ public class WorldManager : MonoBehaviour
                 region.RegionSizeInTiles;
 
             bool sameLayer =
-                coordinate.layer == origin.layer;
+                coordinate.layer ==
+                origin.layer;
 
             bool withinX =
-                coordinate.x >= origin.x &&
-                coordinate.x < origin.x + size.x;
+                coordinate.x >=
+                origin.x &&
+                coordinate.x <
+                origin.x + size.x;
 
             bool withinZ =
-                coordinate.z >= origin.z &&
-                coordinate.z < origin.z + size.y;
+                coordinate.z >=
+                origin.z &&
+                coordinate.z <
+                origin.z + size.y;
 
-            if (sameLayer && withinX && withinZ)
+            if (sameLayer &&
+                withinX &&
+                withinZ)
+            {
                 return region;
+            }
         }
 
         return null;
@@ -121,8 +166,9 @@ public class WorldManager : MonoBehaviour
         if (worldDatabase == null)
             return null;
 
-        foreach (WorldLocationData location
-                 in worldDatabase.Locations)
+        foreach (
+            WorldLocationData location
+            in worldDatabase.Locations)
         {
             if (location == null)
                 continue;
@@ -134,18 +180,27 @@ public class WorldManager : MonoBehaviour
                 location.SizeInTiles;
 
             bool sameLayer =
-                coordinate.layer == position.layer;
+                coordinate.layer ==
+                position.layer;
 
             bool withinX =
-                coordinate.x >= position.x &&
-                coordinate.x < position.x + size.x;
+                coordinate.x >=
+                position.x &&
+                coordinate.x <
+                position.x + size.x;
 
             bool withinZ =
-                coordinate.z >= position.z &&
-                coordinate.z < position.z + size.y;
+                coordinate.z >=
+                position.z &&
+                coordinate.z <
+                position.z + size.y;
 
-            if (sameLayer && withinX && withinZ)
+            if (sameLayer &&
+                withinX &&
+                withinZ)
+            {
                 return location;
+            }
         }
 
         return null;
@@ -154,6 +209,9 @@ public class WorldManager : MonoBehaviour
     public bool IsValidCoordinate(
         WorldCoordinate coordinate)
     {
-        return GetRegionAt(coordinate) != null;
+        return
+            GetRegionAt(
+                coordinate
+            ) != null;
     }
 }

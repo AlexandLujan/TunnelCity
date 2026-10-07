@@ -25,10 +25,13 @@ public class SurfaceChunkRenderer : MonoBehaviour
     {
         BoundsInt partitionBounds = GetCellBounds();
 
-        return partitionBounds.xMin < chunkBounds.xMax &&
-               partitionBounds.xMax > chunkBounds.xMin &&
-               partitionBounds.yMin < chunkBounds.yMax &&
-               partitionBounds.yMax > chunkBounds.yMin;
+        Vector3Int centerCell = new Vector3Int(
+            chunkBounds.xMin + (chunkBounds.size.x / 2),
+            chunkBounds.yMin + (chunkBounds.size.y / 2),
+            0
+        );
+
+        return partitionBounds.Contains(centerCell);
     }
 
     public SurfaceChunkData CaptureChunkData(
@@ -36,17 +39,50 @@ public class SurfaceChunkRenderer : MonoBehaviour
     BoundsInt bounds)
     {
         SurfaceChunkData chunkData =
-            new SurfaceChunkData(coordinate, bounds);
+            new SurfaceChunkData(
+                coordinate,
+                bounds
+            );
 
         int capturedGroundTiles = 0;
+        int capturedWaterTiles = 0;
+        int capturedDetailTiles = 0;
+        int capturedMountainTiles = 0;
 
-        foreach (Vector3Int cellPosition in bounds.allPositionsWithin)
+        foreach (Vector3Int cellPosition
+                 in bounds.allPositionsWithin)
         {
             TileBase groundTile =
-                groundTilemap.GetTile(cellPosition);
+                groundTilemap.GetTile(
+                    cellPosition
+                );
+
+            TileBase waterTile =
+                waterTilemap.GetTile(
+                    cellPosition
+                );
+
+            TileBase detailTile =
+                detailTilemap.GetTile(
+                    cellPosition
+                );
+
+            TileBase mountainTile =
+                mountainWallsTilemap.GetTile(
+                    cellPosition
+                );
 
             if (groundTile != null)
                 capturedGroundTiles++;
+
+            if (waterTile != null)
+                capturedWaterTiles++;
+
+            if (detailTile != null)
+                capturedDetailTiles++;
+
+            if (mountainTile != null)
+                capturedMountainTiles++;
 
             chunkData.SetGroundTile(
                 cellPosition,
@@ -55,19 +91,29 @@ public class SurfaceChunkRenderer : MonoBehaviour
 
             chunkData.SetWaterTile(
                 cellPosition,
-                waterTilemap.GetTile(cellPosition)
+                waterTile
             );
 
             chunkData.SetDetailTile(
                 cellPosition,
-                detailTilemap.GetTile(cellPosition)
+                detailTile
             );
 
             chunkData.SetMountainTile(
                 cellPosition,
-                mountainWallsTilemap.GetTile(cellPosition)
+                mountainTile
             );
         }
+
+        Debug.Log(
+            $"CAPTURE {coordinate} | " +
+            $"Renderer: {name} | " +
+            $"Bounds: {bounds} | " +
+            $"Ground: {capturedGroundTiles} | " +
+            $"Water: {capturedWaterTiles} | " +
+            $"Detail: {capturedDetailTiles} | " +
+            $"Mountain: {capturedMountainTiles}"
+        );
 
         return chunkData;
     }
@@ -124,5 +170,36 @@ public class SurfaceChunkRenderer : MonoBehaviour
         waterTilemap.ClearAllTiles();
         detailTilemap.ClearAllTiles();
         mountainWallsTilemap.ClearAllTiles();
+    }
+
+    public int CountTilesInBounds(BoundsInt bounds)
+    {
+        int tileCount = 0;
+
+        foreach (Vector3Int cellPosition
+                 in bounds.allPositionsWithin)
+        {
+            if (groundTilemap.GetTile(cellPosition) != null)
+                tileCount++;
+
+            if (waterTilemap.GetTile(cellPosition) != null)
+                tileCount++;
+
+            if (detailTilemap.GetTile(cellPosition) != null)
+                tileCount++;
+
+            if (mountainWallsTilemap.GetTile(cellPosition) != null)
+                tileCount++;
+        }
+
+        return tileCount;
+    }
+
+    public Vector3Int WorldToCell(
+    Vector3 worldPosition)
+    {
+        return groundTilemap.WorldToCell(
+            worldPosition
+        );
     }
 }

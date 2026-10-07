@@ -18,12 +18,18 @@ public class SurfaceChunkManager
     > chunkRenderers;
 
     private Vector2Int regionOrigin;
+
+    public int CapturedChunkCount =>
+        chunks.Count;
+
     public SurfaceChunkManager(
         SurfaceChunkRenderer[] surfaceChunkRenderers,
         WorldRegionDefinition regionDefinition)
     {
         renderers = surfaceChunkRenderers;
-        this.regionDefinition = regionDefinition;
+
+        this.regionDefinition =
+            regionDefinition;
 
         chunks =
             new Dictionary<
@@ -40,21 +46,42 @@ public class SurfaceChunkManager
 
     public void Initialize()
     {
-        regionOrigin = new Vector2Int(regionDefinition.WorldOrigin.x, regionDefinition.WorldOrigin.z);
+        regionOrigin =
+            CalculateRegionOrigin();
 
         Vector2Int regionSize =
             regionDefinition.RegionSizeInChunks;
 
-        for (int z = 0; z < regionSize.y; z++)
+        Debug.Log(
+            $"Initializing surface region: " +
+            $"{regionSize.x} x {regionSize.y} chunks. " +
+            $"Calculated Origin: {regionOrigin}"
+        );
+
+        for (int z = 0;
+             z < regionSize.y;
+             z++)
         {
-            for (int x = 0; x < regionSize.x; x++)
+            for (int x = 0;
+                 x < regionSize.x;
+                 x++)
             {
                 ChunkCoordinate coordinate =
-                    new ChunkCoordinate(x, z);
+                    new ChunkCoordinate(
+                        x,
+                        z
+                    );
 
-                CaptureChunk(coordinate);
+                CaptureChunk(
+                    coordinate
+                );
             }
         }
+
+        Debug.Log(
+            $"Captured {chunks.Count} chunks for " +
+            $"{regionDefinition.name}."
+        );
     }
 
     public void PrepareForStreaming()
@@ -70,23 +97,50 @@ public class SurfaceChunkManager
     }
 
     public ChunkCoordinate WorldToChunkCoordinate(
-        Vector3 worldPosition)
+    Vector3 worldPosition)
     {
-        float relativeX =
-            worldPosition.x - regionOrigin.x;
+        if (renderers == null ||
+            renderers.Length == 0)
+        {
+            return new ChunkCoordinate(
+                int.MinValue,
+                int.MinValue
+            );
+        }
 
-        float relativeY =
-            worldPosition.y - regionOrigin.y;
+        SurfaceChunkRenderer renderer =
+            renderers[0];
+
+        if (renderer == null)
+        {
+            return new ChunkCoordinate(
+                int.MinValue,
+                int.MinValue
+            );
+        }
+
+        Vector3Int cellPosition =
+            renderer.WorldToCell(
+                worldPosition
+            );
+
+        int relativeX =
+            cellPosition.x -
+            regionOrigin.x;
+
+        int relativeY =
+            cellPosition.y -
+            regionOrigin.y;
 
         int chunkX =
             Mathf.FloorToInt(
-                relativeX /
+                (float)relativeX /
                 regionDefinition.ChunkSize
             );
 
         int chunkZ =
             Mathf.FloorToInt(
-                relativeY /
+                (float)relativeY /
                 regionDefinition.ChunkSize
             );
 
@@ -99,25 +153,34 @@ public class SurfaceChunkManager
     public bool HasChunkData(
         ChunkCoordinate coordinate)
     {
-        return HasChunk(coordinate);
+        return HasChunk(
+            coordinate
+        );
     }
 
     public void Load(
         ChunkCoordinate coordinate)
     {
-        LoadChunk(coordinate);
+        LoadChunk(
+            coordinate
+        );
     }
 
     public void Unload(
         ChunkCoordinate coordinate)
     {
-        UnloadChunk(coordinate);
+        UnloadChunk(
+            coordinate
+        );
     }
 
     private Vector2Int CalculateRegionOrigin()
     {
-        int minX = int.MaxValue;
-        int minY = int.MaxValue;
+        int minX =
+            int.MaxValue;
+
+        int minY =
+            int.MaxValue;
 
         foreach (SurfaceChunkRenderer renderer
                  in renderers)
@@ -144,9 +207,19 @@ public class SurfaceChunkManager
     private BoundsInt GetChunkBounds(
         ChunkCoordinate coordinate)
     {
-        int startX = regionOrigin.x + (coordinate.x * regionDefinition.ChunkSize);
+        int startX =
+            regionOrigin.x +
+            (
+                coordinate.x *
+                regionDefinition.ChunkSize
+            );
 
-        int startY = regionOrigin.y + (coordinate.z * regionDefinition.ChunkSize);
+        int startY =
+            regionOrigin.y +
+            (
+                coordinate.z *
+                regionDefinition.ChunkSize
+            );
 
         return new BoundsInt(
             startX,
@@ -162,13 +235,25 @@ public class SurfaceChunkManager
         ChunkCoordinate coordinate)
     {
         BoundsInt bounds =
-            GetChunkBounds(coordinate);
+            GetChunkBounds(
+                coordinate
+            );
 
         SurfaceChunkRenderer renderer =
-            GetRendererForChunk(bounds);
+            GetRendererForChunk(
+                bounds
+            );
 
         if (renderer == null)
+        {
+            Debug.LogWarning(
+                $"No SurfaceChunkRenderer found for " +
+                $"chunk {coordinate} | " +
+                $"Bounds: {bounds}"
+            );
+
             return;
+        }
 
         SurfaceChunkData chunkData =
             renderer.CaptureChunkData(
@@ -186,12 +271,15 @@ public class SurfaceChunkManager
     private void LoadChunk(
         ChunkCoordinate coordinate)
     {
-        if (!HasChunk(coordinate))
+        if (!HasChunk(
+                coordinate))
+        {
             return;
+        }
 
         if (!chunkRenderers.TryGetValue(
-            coordinate,
-            out SurfaceChunkRenderer renderer))
+                coordinate,
+                out SurfaceChunkRenderer renderer))
         {
             return;
         }
@@ -207,12 +295,15 @@ public class SurfaceChunkManager
     private void UnloadChunk(
         ChunkCoordinate coordinate)
     {
-        if (!HasChunk(coordinate))
+        if (!HasChunk(
+                coordinate))
+        {
             return;
+        }
 
         if (!chunkRenderers.TryGetValue(
-            coordinate,
-            out SurfaceChunkRenderer renderer))
+                coordinate,
+                out SurfaceChunkRenderer renderer))
         {
             return;
         }
@@ -225,21 +316,50 @@ public class SurfaceChunkManager
         );
     }
 
-    private SurfaceChunkRenderer
-        GetRendererForChunk(
-            BoundsInt bounds)
+    private SurfaceChunkRenderer GetRendererForChunk(
+    BoundsInt bounds)
     {
+        SurfaceChunkRenderer bestRenderer = null;
+        int bestTileCount = 0;
+
         foreach (SurfaceChunkRenderer renderer
                  in renderers)
         {
             if (renderer == null)
                 continue;
 
-            if (renderer.ContainsChunk(bounds))
-                return renderer;
+            int tileCount =
+                renderer.CountTilesInBounds(
+                    bounds
+                );
+
+            if (tileCount <= bestTileCount)
+                continue;
+
+            bestTileCount =
+                tileCount;
+
+            bestRenderer =
+                renderer;
         }
 
-        return null;
+        if (bestRenderer != null)
+        {
+            Debug.Log(
+                $"Renderer selected for {bounds}: " +
+                $"{bestRenderer.name} | " +
+                $"Tiles found: {bestTileCount}"
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"No renderer contained tile data for " +
+                $"bounds {bounds}."
+            );
+        }
+
+        return bestRenderer;
     }
 
     private bool HasChunk(
