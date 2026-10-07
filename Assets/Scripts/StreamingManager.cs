@@ -77,6 +77,12 @@ public class StreamingManager : MonoBehaviour
                 cardinalMovement.transform.position
             );
 
+        Debug.Log(
+            $"CURRENT REGION: {currentRegion?.name} | " +
+            $"PLAYER CHUNK: {playerChunk} | " +
+            $"HAS DATA: {surfaceChunkManager.HasChunkData(playerChunk)}"
+        );
+
         // Player has moved outside the
         // currently active region.
         if (!surfaceChunkManager.HasChunkData(

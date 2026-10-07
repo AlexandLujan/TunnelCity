@@ -114,37 +114,25 @@ public class CardinalMovement : MonoBehaviour
 
     private Vector2Int GetInputDirection()
     {
-        if (Input.GetKey(KeyCode.W) ||
-            Input.GetKey(KeyCode.UpArrow))
-        {
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             return Vector2Int.up;
-        }
-
-        if (Input.GetKey(KeyCode.A) ||
-            Input.GetKey(KeyCode.LeftArrow))
-        {
+        
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             return Vector2Int.left;
-        }
 
-        if (Input.GetKey(KeyCode.S) ||
-            Input.GetKey(KeyCode.DownArrow))
-        {
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
             return Vector2Int.down;
-        }
 
-        if (Input.GetKey(KeyCode.D) ||
-            Input.GetKey(KeyCode.RightArrow))
-        {
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
             return Vector2Int.right;
-        }
+        
 
         return Vector2Int.zero;
     }
 
     private void TryMove(Vector2Int direction)
     {
-        if (isMoving)
-            return;
+        if (isMoving) return;
 
         Vector3Int targetCell =
             currentCell +
@@ -154,22 +142,9 @@ public class CardinalMovement : MonoBehaviour
                 0
             );
 
-        Vector3 targetWorld =
-            GetCellCenter(targetCell);
+        Vector3 targetWorld = GetCellCenter(targetCell);
 
-        Debug.Log(
-            $"MOVE | " +
-            $"Player: {rb.position} | " +
-            $"Current Cell: {currentCell} | " +
-            $"Target Cell: {targetCell} | " +
-            $"Target World: {targetWorld} | " +
-            $"Grid: {worldGrid?.name} | " +
-            $"Grid Pos: {worldGrid?.transform.position}"
-        );
-
-        StartCoroutine(
-            MoveToCell(targetCell)
-        );
+        StartCoroutine(MoveToCell(targetCell));
     }
 
     private IEnumerator MoveToCell(
