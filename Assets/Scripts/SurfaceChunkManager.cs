@@ -17,7 +17,13 @@ public class SurfaceChunkManager
         SurfaceChunkRenderer
     > chunkRenderers;
 
-    private Vector2Int regionOrigin;
+    // Origin of the actual painted Tilemaps.
+    // Used when capturing/rendering chunk data.
+    private Vector2Int tilemapOrigin;
+
+    // Logical global origin of this region.
+    // Used when determining which chunk the player occupies.
+    private Vector2Int worldOrigin;
 
     public int CapturedChunkCount =>
         chunks.Count;
@@ -26,7 +32,8 @@ public class SurfaceChunkManager
         SurfaceChunkRenderer[] surfaceChunkRenderers,
         WorldRegionDefinition regionDefinition)
     {
-        renderers = surfaceChunkRenderers;
+        renderers =
+            surfaceChunkRenderers;
 
         this.regionDefinition =
             regionDefinition;
@@ -46,8 +53,15 @@ public class SurfaceChunkManager
 
     public void Initialize()
     {
-        regionOrigin =
-            CalculateRegionOrigin();
+        // Physical Tilemap coordinate origin.
+        tilemapOrigin = regionDefinition.TilemapOrigin;
+
+        // Logical/global world origin.
+        worldOrigin =
+            new Vector2Int(
+                regionDefinition.WorldOrigin.x,
+                regionDefinition.WorldOrigin.z
+            );
 
         Vector2Int regionSize =
             regionDefinition.RegionSizeInChunks;
@@ -55,7 +69,8 @@ public class SurfaceChunkManager
         Debug.Log(
             $"Initializing surface region: " +
             $"{regionSize.x} x {regionSize.y} chunks. " +
-            $"Calculated Origin: {regionOrigin}"
+            $"Tilemap Origin: {tilemapOrigin} | " +
+            $"World Origin: {worldOrigin}"
         );
 
         for (int z = 0;
@@ -86,8 +101,9 @@ public class SurfaceChunkManager
 
     public void PrepareForStreaming()
     {
-        foreach (SurfaceChunkRenderer renderer
-                 in renderers)
+        foreach (
+            SurfaceChunkRenderer renderer
+            in renderers)
         {
             if (renderer == null)
                 continue;
@@ -97,40 +113,15 @@ public class SurfaceChunkManager
     }
 
     public ChunkCoordinate WorldToChunkCoordinate(
-    Vector3 worldPosition)
+    Vector3Int globalCellPosition)
     {
-        if (renderers == null ||
-            renderers.Length == 0)
-        {
-            return new ChunkCoordinate(
-                int.MinValue,
-                int.MinValue
-            );
-        }
-
-        SurfaceChunkRenderer renderer =
-            renderers[0];
-
-        if (renderer == null)
-        {
-            return new ChunkCoordinate(
-                int.MinValue,
-                int.MinValue
-            );
-        }
-
-        Vector3Int cellPosition =
-            renderer.WorldToCell(
-                worldPosition
-            );
-
         int relativeX =
-            cellPosition.x -
-            regionOrigin.x;
+            globalCellPosition.x -
+            worldOrigin.x;
 
-        int relativeY =
-            cellPosition.y -
-            regionOrigin.y;
+        int relativeZ =
+            globalCellPosition.y -
+            worldOrigin.y;
 
         int chunkX =
             Mathf.FloorToInt(
@@ -140,7 +131,7 @@ public class SurfaceChunkManager
 
         int chunkZ =
             Mathf.FloorToInt(
-                (float)relativeY /
+                (float)relativeZ /
                 regionDefinition.ChunkSize
             );
 
@@ -182,8 +173,9 @@ public class SurfaceChunkManager
         int minY =
             int.MaxValue;
 
-        foreach (SurfaceChunkRenderer renderer
-                 in renderers)
+        foreach (
+            SurfaceChunkRenderer renderer
+            in renderers)
         {
             if (renderer == null)
                 continue;
@@ -207,15 +199,20 @@ public class SurfaceChunkManager
     private BoundsInt GetChunkBounds(
         ChunkCoordinate coordinate)
     {
+        // IMPORTANT:
+        // Capture/render coordinates are based
+        // on the actual Tilemap origin, NOT the
+        // region's logical world origin.
+
         int startX =
-            regionOrigin.x +
+            tilemapOrigin.x +
             (
                 coordinate.x *
                 regionDefinition.ChunkSize
             );
 
         int startY =
-            regionOrigin.y +
+            tilemapOrigin.y +
             (
                 coordinate.z *
                 regionDefinition.ChunkSize
@@ -239,21 +236,43 @@ public class SurfaceChunkManager
                 coordinate
             );
 
+        if (coordinate.x == 6 &&
+    coordinate.z == 0)
+        {
+            Debug.Log(
+                $"TARGET CAPTURE CHECK | " +
+                $"Region: {regionDefinition.name} | " +
+                $"Chunk: {coordinate} | " +
+                $"Bounds: {bounds} | " +
+                $"Tilemap Origin: {tilemapOrigin} | " +
+                $"World Origin: {worldOrigin}"
+            );
+
+            foreach (SurfaceChunkRenderer testRenderer
+                     in renderers)
+            {
+                if (testRenderer == null)
+                    continue;
+
+                Debug.Log(
+                    $"TARGET RENDERER CHECK | " +
+                    $"Region: {regionDefinition.name} | " +
+                    $"Renderer: {testRenderer.name} | " +
+                    $"Tiles In Bounds: " +
+                    $"{testRenderer.CountTilesInBounds(bounds)} | " +
+                    $"Renderer Bounds: {testRenderer.GetCellBounds()}"
+                );
+            }
+        }
+
         SurfaceChunkRenderer renderer =
             GetRendererForChunk(
                 bounds
             );
 
+        // An empty/unpainted chunk is allowed.
         if (renderer == null)
-        {
-            Debug.LogWarning(
-                $"No SurfaceChunkRenderer found for " +
-                $"chunk {coordinate} | " +
-                $"Bounds: {bounds}"
-            );
-
             return;
-        }
 
         SurfaceChunkData chunkData =
             renderer.CaptureChunkData(
@@ -316,14 +335,19 @@ public class SurfaceChunkManager
         );
     }
 
-    private SurfaceChunkRenderer GetRendererForChunk(
-    BoundsInt bounds)
+    private SurfaceChunkRenderer
+        GetRendererForChunk(
+            BoundsInt bounds)
     {
-        SurfaceChunkRenderer bestRenderer = null;
-        int bestTileCount = 0;
+        SurfaceChunkRenderer bestRenderer =
+            null;
 
-        foreach (SurfaceChunkRenderer renderer
-                 in renderers)
+        int bestTileCount =
+            0;
+
+        foreach (
+            SurfaceChunkRenderer renderer
+            in renderers)
         {
             if (renderer == null)
                 continue;
@@ -333,30 +357,17 @@ public class SurfaceChunkManager
                     bounds
                 );
 
-            if (tileCount <= bestTileCount)
+            if (tileCount <=
+                bestTileCount)
+            {
                 continue;
+            }
 
             bestTileCount =
                 tileCount;
 
             bestRenderer =
                 renderer;
-        }
-
-        if (bestRenderer != null)
-        {
-            Debug.Log(
-                $"Renderer selected for {bounds}: " +
-                $"{bestRenderer.name} | " +
-                $"Tiles found: {bestTileCount}"
-            );
-        }
-        else
-        {
-            Debug.LogWarning(
-                $"No renderer contained tile data for " +
-                $"bounds {bounds}."
-            );
         }
 
         return bestRenderer;

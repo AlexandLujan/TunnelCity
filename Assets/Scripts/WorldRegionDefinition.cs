@@ -20,6 +20,10 @@ public class WorldRegionDefinition : ScriptableObject
     [SerializeField]
     private WorldCoordinate worldOrigin;
 
+    [Header("Tilemap Placement")]
+    [SerializeField]
+    private Vector2Int tilemapOrigin;
+
     [Header("Chunk Settings")]
     [SerializeField]
     private Vector2Int regionSizeInChunks;
@@ -36,11 +40,9 @@ public class WorldRegionDefinition : ScriptableObject
     public WorldType WorldType => worldType;
 
     public WorldCoordinate WorldOrigin => worldOrigin;
-
+    public Vector2Int TilemapOrigin => tilemapOrigin;
     public Vector2Int RegionSizeInChunks => regionSizeInChunks;
     public int ChunkSize => chunkSize;
-
     public string SceneName => sceneName;
-
     public Vector2Int RegionSizeInTiles => regionSizeInChunks * chunkSize;
 }

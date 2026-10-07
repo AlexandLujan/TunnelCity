@@ -65,6 +65,10 @@ public class WorldManager : MonoBehaviour
 
     private void LoadSurfaceRegions()
     {
+        Debug.Log(
+            $"WORLD MANAGER SURFACE REGION COUNT: " +
+            $"{surfaceRegions.Length}"
+        );
         if (surfaceRegions == null ||
             surfaceRegions.Length == 0)
         {
@@ -83,6 +87,10 @@ public class WorldManager : MonoBehaviour
             WorldRegionDefinition region
             in surfaceRegions)
         {
+            Debug.Log(
+                $"WORLD MANAGER REGION ENTRY | " +
+                $"{region.name} | Scene: {region.SceneName}"
+            );
             if (region == null)
                 continue;
 
@@ -213,5 +221,14 @@ public class WorldManager : MonoBehaviour
             GetRegionAt(
                 coordinate
             ) != null;
+    }
+
+    public void SetCurrentRegion(
+    WorldRegionDefinition region)
+    {
+        if (region == null)
+            return;
+
+        currentRegion = region;
     }
 }

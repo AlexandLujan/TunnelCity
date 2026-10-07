@@ -11,7 +11,7 @@ public class SurfaceRegionController : MonoBehaviour
 
     private void Start()
     {
-
+        Debug.Log($"REGION CONTROLLER START | Scene: {gameObject.scene.name}");
         if (regionDefinition == null)
         {
             Debug.LogError(

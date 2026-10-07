@@ -16,32 +16,35 @@ public class StreamingManager : MonoBehaviour
     [SerializeField]
     private Grid overworldGrid;
 
+    [SerializeField]
+    private WorldManager worldManager;
+
     private WorldRegionDefinition currentRegion;
-
-    private ChunkCoordinate currentChunk;
-
-    private HashSet<ChunkCoordinate> activeChunks;
-
-    private SurfaceChunkManager surfaceChunkManager;
 
     private Dictionary<
         WorldRegionDefinition,
         SurfaceChunkManager
     > surfaceRegions;
 
+    private Dictionary<
+        WorldRegionDefinition,
+        HashSet<ChunkCoordinate>
+    > activeChunksByRegion;
+
     private int currentLayerIndex;
 
     private void Awake()
     {
-        activeChunks =
-            new HashSet<
-                ChunkCoordinate
-            >();
-
         surfaceRegions =
             new Dictionary<
                 WorldRegionDefinition,
                 SurfaceChunkManager
+            >();
+
+        activeChunksByRegion =
+            new Dictionary<
+                WorldRegionDefinition,
+                HashSet<ChunkCoordinate>
             >();
     }
 
@@ -57,7 +60,9 @@ public class StreamingManager : MonoBehaviour
             overworldGrid
         );
 
-        TryActivateRegionForPlayer();
+        UpdateCurrentGameplayRegion();
+
+        RefreshAllSurfaceRegions();
     }
 
     private void Update()
@@ -65,37 +70,12 @@ public class StreamingManager : MonoBehaviour
         if (cardinalMovement == null)
             return;
 
-        if (surfaceChunkManager == null)
-        {
-            TryActivateRegionForPlayer();
-
+        if (overworldGrid == null)
             return;
-        }
 
-        ChunkCoordinate playerChunk =
-            surfaceChunkManager.WorldToChunkCoordinate(
-                cardinalMovement.transform.position
-            );
+        UpdateCurrentGameplayRegion();
 
-        Debug.Log(
-            $"CURRENT REGION: {currentRegion?.name} | " +
-            $"PLAYER CHUNK: {playerChunk} | " +
-            $"HAS DATA: {surfaceChunkManager.HasChunkData(playerChunk)}"
-        );
-
-        // Player has moved outside the
-        // currently active region.
-        if (!surfaceChunkManager.HasChunkData(
-                playerChunk))
-        {
-            TryActivateRegionForPlayer();
-
-            return;
-        }
-
-        UpdateCurrentChunk(
-            playerChunk
-        );
+        RefreshAllSurfaceRegions();
     }
 
     public void RegisterSurfaceRegion(
@@ -111,13 +91,23 @@ public class StreamingManager : MonoBehaviour
         surfaceRegions[regionDefinition] =
             chunkManager;
 
+        if (!activeChunksByRegion.ContainsKey(
+                regionDefinition))
+        {
+            activeChunksByRegion[
+                regionDefinition
+            ] =
+                new HashSet<
+                    ChunkCoordinate
+                >();
+        }
+
         if (chunkManager.CapturedChunkCount == 0)
         {
             Debug.LogError(
                 $"Surface region " +
                 $"{regionDefinition.name} " +
-                $"captured ZERO chunks. " +
-                $"Tilemaps will NOT be cleared."
+                $"captured ZERO chunks."
             );
 
             return;
@@ -131,105 +121,115 @@ public class StreamingManager : MonoBehaviour
             $"captured chunks."
         );
 
-        // The manager has already captured
-        // its painted data.
-        //
-        // Clear the physical Tilemaps so
-        // chunks can now be streamed.
+        /*
+         * The painted Tilemaps have now been
+         * safely copied into SurfaceChunkData.
+         *
+         * Clear the original painted terrain.
+         * From this point onward, terrain is
+         * controlled by streaming.
+         */
         chunkManager.PrepareForStreaming();
 
-        if (cardinalMovement == null)
-            return;
-
-        ChunkCoordinate playerChunk =
-            chunkManager.WorldToChunkCoordinate(
-                cardinalMovement.transform.position
-            );
-
-        // If the player is currently inside
-        // this region, make it the active
-        // surface region.
-        if (chunkManager.HasChunkData(
-                playerChunk))
+        if (overworldGrid != null &&
+            cardinalMovement != null)
         {
-            ActivateSurfaceRegion(
-                regionDefinition,
-                chunkManager
-            );
-        }
-    }
-
-    private void ActivateSurfaceRegion(
-        WorldRegionDefinition regionDefinition,
-        SurfaceChunkManager chunkManager)
-    {
-        if (regionDefinition == null)
-            return;
-
-        if (chunkManager == null)
-            return;
-
-        if (currentRegion == regionDefinition &&
-            surfaceChunkManager == chunkManager)
-        {
-            return;
-        }
-
-        // Unload chunks from the previously
-        // active region.
-        if (surfaceChunkManager != null)
-        {
-            foreach (
-                ChunkCoordinate coordinate
-                in activeChunks)
-            {
-                surfaceChunkManager.Unload(
-                    coordinate
-                );
-            }
-        }
-
-        activeChunks.Clear();
-
-        currentRegion =
-            regionDefinition;
-
-        surfaceChunkManager =
-            chunkManager;
-
-        Debug.Log(
-            $"Active surface region changed to: " +
-            $"{regionDefinition.name}"
-        );
-
-        if (cardinalMovement != null &&
-            overworldGrid != null)
-        {
-            cardinalMovement.SetWorldGrid(
-                overworldGrid
-            );
-        }
-
-        if (cardinalMovement == null)
-            return;
-
-        ChunkCoordinate startingChunk =
-            surfaceChunkManager
-                .WorldToChunkCoordinate(
+            Vector3Int playerCell =
+                overworldGrid.WorldToCell(
                     cardinalMovement
                         .transform
                         .position
                 );
 
-        InitializeChunks(
-            startingChunk
+            RefreshSurfaceRegion(
+                regionDefinition,
+                chunkManager,
+                playerCell
+            );
+        }
+
+        UpdateCurrentGameplayRegion();
+    }
+
+    private void UpdateCurrentGameplayRegion()
+    {
+        if (worldManager == null)
+        {
+            Debug.LogError(
+                "StreamingManager: WorldManager is NULL."
+            );
+
+            return;
+        }
+
+        if (overworldGrid == null)
+        {
+            Debug.LogError(
+                "StreamingManager: OverworldGrid is NULL."
+            );
+
+            return;
+        }
+
+        if (cardinalMovement == null)
+        {
+            Debug.LogError(
+                "StreamingManager: CardinalMovement is NULL."
+            );
+
+            return;
+        }
+
+        Vector3Int playerCell =
+            overworldGrid.WorldToCell(
+                cardinalMovement.transform.position
+            );
+
+        WorldCoordinate playerCoordinate =
+            new WorldCoordinate(
+                playerCell.x,
+                currentLayerIndex,
+                playerCell.y
+            );
+
+        WorldRegionDefinition playerRegion =
+            worldManager.GetRegionAt(
+                playerCoordinate
+            );
+
+        if (playerRegion == null)
+            return;
+
+        if (playerRegion == currentRegion)
+            return;
+
+        currentRegion =
+            playerRegion;
+
+        worldManager.SetCurrentRegion(
+            playerRegion
+        );
+
+        Debug.Log(
+            $"Current gameplay region changed to: " +
+            $"{playerRegion.name}"
         );
     }
 
-    private void TryActivateRegionForPlayer()
+    private void RefreshAllSurfaceRegions()
     {
         if (cardinalMovement == null)
             return;
+
+        if (overworldGrid == null)
+            return;
+
+        Vector3Int playerCell =
+            overworldGrid.WorldToCell(
+                cardinalMovement
+                    .transform
+                    .position
+            );
 
         foreach (
             KeyValuePair<
@@ -237,41 +237,159 @@ public class StreamingManager : MonoBehaviour
                 SurfaceChunkManager
             > region in surfaceRegions)
         {
-            SurfaceChunkManager chunkManager =
-                region.Value;
-
-            if (chunkManager == null)
+            if (region.Key == null)
                 continue;
 
-            ChunkCoordinate playerChunk =
-                chunkManager
-                    .WorldToChunkCoordinate(
-                        cardinalMovement
-                            .transform
-                            .position
-                    );
+            if (region.Value == null)
+                continue;
 
-            Debug.Log(
-                $"CHECK REGION: " +
-                $"{region.Key.name} | " +
-                $"Chunk: {playerChunk} | " +
-                $"Valid: " +
-                $"{chunkManager.HasChunkData(playerChunk)}"
+            RefreshSurfaceRegion(
+                region.Key,
+                region.Value,
+                playerCell
+            );
+        }
+    }
+
+    private void RefreshSurfaceRegion(
+        WorldRegionDefinition regionDefinition,
+        SurfaceChunkManager chunkManager,
+        Vector3Int playerCell)
+    {
+        if (regionDefinition == null)
+            return;
+
+        if (chunkManager == null)
+            return;
+
+        if (cardinalMovement == null)
+            return;
+
+        if (!activeChunksByRegion.TryGetValue(
+                regionDefinition,
+                out HashSet<ChunkCoordinate>
+                    activeChunks))
+        {
+            activeChunks =
+                new HashSet<
+                    ChunkCoordinate
+                >();
+
+            activeChunksByRegion[
+                regionDefinition
+            ] =
+                activeChunks;
+        }
+
+        ChunkCoordinate playerChunk =
+            chunkManager.WorldToChunkCoordinate(
+                playerCell
             );
 
-            if (!chunkManager.HasChunkData(
-                    playerChunk))
+        if (regionDefinition == currentRegion)
+        {
+            Debug.Log(
+                $"STREAM CHECK | " +
+                $"Region: {regionDefinition.name} | " +
+                $"Player Chunk: {playerChunk} | " +
+                $"Has Data: " +
+                $"{chunkManager.HasChunkData(playerChunk)}"
+            );
+        }
+
+        HashSet<ChunkCoordinate>
+            desiredChunks =
+                GetDesiredChunks(
+                    chunkManager,
+                    playerChunk
+                );
+
+        /*
+         * Load chunks that have entered
+         * the streaming radius.
+         */
+        foreach (
+            ChunkCoordinate coordinate
+            in desiredChunks)
+        {
+            if (activeChunks.Contains(
+                    coordinate))
             {
                 continue;
             }
 
-            ActivateSurfaceRegion(
-                region.Key,
-                chunkManager
+            chunkManager.Load(
+                coordinate
             );
-
-            return;
         }
+
+        /*
+         * Unload chunks that have left
+         * the streaming radius.
+         */
+        foreach (
+            ChunkCoordinate coordinate
+            in activeChunks)
+        {
+            if (desiredChunks.Contains(
+                    coordinate))
+            {
+                continue;
+            }
+
+            chunkManager.Unload(
+                coordinate
+            );
+        }
+
+        activeChunksByRegion[
+            regionDefinition
+        ] =
+            desiredChunks;
+    }
+
+    private HashSet<ChunkCoordinate>
+        GetDesiredChunks(
+            SurfaceChunkManager chunkManager,
+            ChunkCoordinate playerChunk)
+    {
+        HashSet<ChunkCoordinate>
+            desiredChunks =
+                new HashSet<
+                    ChunkCoordinate
+                >();
+
+        if (chunkManager == null)
+            return desiredChunks;
+
+        for (int z = -streamingRadius;
+             z <= streamingRadius;
+             z++)
+        {
+            for (int x = -streamingRadius;
+                 x <= streamingRadius;
+                 x++)
+            {
+                ChunkCoordinate coordinate =
+                    new ChunkCoordinate(
+                        playerChunk.x + x,
+                        playerChunk.z + z
+                    );
+
+                if (!chunkManager
+                    .HasChunkData(
+                        coordinate))
+                {
+                    continue;
+                }
+
+                desiredChunks.Add(
+                    coordinate
+                );
+            }
+        }
+
+        return desiredChunks;
     }
 
     public void SetCurrentLayer(
@@ -279,6 +397,10 @@ public class StreamingManager : MonoBehaviour
     {
         currentLayerIndex =
             layerIndex;
+
+        UpdateCurrentGameplayRegion();
+
+        RefreshAllSurfaceRegions();
     }
 
     public async void LoadRegion(
@@ -290,6 +412,12 @@ public class StreamingManager : MonoBehaviour
         if (string.IsNullOrEmpty(
                 regionDefinition.SceneName))
         {
+            Debug.LogError(
+                $"LOAD FAILED | " +
+                $"Region {regionDefinition.name} " +
+                $"has no SceneName."
+            );
+
             return;
         }
 
@@ -300,6 +428,12 @@ public class StreamingManager : MonoBehaviour
 
         if (existingScene.isLoaded)
         {
+            Debug.Log(
+                $"SCENE ALREADY LOADED | " +
+                $"Region: {regionDefinition.name} | " +
+                $"Scene: {regionDefinition.SceneName}"
+            );
+
             if (cardinalMovement != null &&
                 overworldGrid != null)
             {
@@ -308,10 +442,18 @@ public class StreamingManager : MonoBehaviour
                 );
             }
 
-            TryActivateRegionForPlayer();
+            UpdateCurrentGameplayRegion();
+
+            RefreshAllSurfaceRegions();
 
             return;
         }
+
+        Debug.Log(
+            $"LOAD REQUEST | " +
+            $"Region: {regionDefinition.name} | " +
+            $"Scene: {regionDefinition.SceneName}"
+        );
 
         AsyncOperation operation =
             SceneManager.LoadSceneAsync(
@@ -320,10 +462,26 @@ public class StreamingManager : MonoBehaviour
             );
 
         if (operation == null)
+        {
+            Debug.LogError(
+                $"LOAD FAILED TO START | " +
+                $"Region: {regionDefinition.name} | " +
+                $"Scene: {regionDefinition.SceneName}"
+            );
+
             return;
+        }
 
         while (!operation.isDone)
+        {
             await Task.Yield();
+        }
+
+        Debug.Log(
+            $"LOAD COMPLETE | " +
+            $"Region: {regionDefinition.name} | " +
+            $"Scene: {regionDefinition.SceneName}"
+        );
 
         Scene loadedScene =
             SceneManager.GetSceneByName(
@@ -331,7 +489,15 @@ public class StreamingManager : MonoBehaviour
             );
 
         if (!loadedScene.isLoaded)
+        {
+            Debug.LogError(
+                $"SCENE NOT LOADED AFTER OPERATION | " +
+                $"Region: {regionDefinition.name} | " +
+                $"Scene: {regionDefinition.SceneName}"
+            );
+
             return;
+        }
 
         if (cardinalMovement != null &&
             overworldGrid != null)
@@ -341,7 +507,15 @@ public class StreamingManager : MonoBehaviour
             );
         }
 
-        TryActivateRegionForPlayer();
+        /*
+         * SurfaceRegionController inside the
+         * newly loaded scene will register its
+         * SurfaceChunkManager.
+         */
+
+        UpdateCurrentGameplayRegion();
+
+        RefreshAllSurfaceRegions();
     }
 
     public async void UnloadRegion(
@@ -356,6 +530,30 @@ public class StreamingManager : MonoBehaviour
             return;
         }
 
+        /*
+         * Clear any chunks currently rendered
+         * by this region before removing it.
+         */
+        if (surfaceRegions.TryGetValue(
+                regionDefinition,
+                out SurfaceChunkManager chunkManager))
+        {
+            if (activeChunksByRegion.TryGetValue(
+                    regionDefinition,
+                    out HashSet<ChunkCoordinate>
+                        activeChunks))
+            {
+                foreach (
+                    ChunkCoordinate coordinate
+                    in activeChunks)
+                {
+                    chunkManager.Unload(
+                        coordinate
+                    );
+                }
+            }
+        }
+
         Scene scene =
             SceneManager.GetSceneByName(
                 regionDefinition.SceneName
@@ -363,10 +561,6 @@ public class StreamingManager : MonoBehaviour
 
         if (!scene.isLoaded)
             return;
-
-        bool unloadingCurrentRegion =
-            currentRegion ==
-            regionDefinition;
 
         AsyncOperation operation =
             SceneManager.UnloadSceneAsync(
@@ -377,131 +571,24 @@ public class StreamingManager : MonoBehaviour
             return;
 
         while (!operation.isDone)
+        {
             await Task.Yield();
+        }
 
         surfaceRegions.Remove(
             regionDefinition
         );
 
-        if (unloadingCurrentRegion)
+        activeChunksByRegion.Remove(
+            regionDefinition
+        );
+
+        if (currentRegion ==
+            regionDefinition)
         {
             currentRegion = null;
 
-            surfaceChunkManager = null;
-
-            activeChunks.Clear();
-
-            TryActivateRegionForPlayer();
+            UpdateCurrentGameplayRegion();
         }
-    }
-
-    public void InitializeChunks(
-        ChunkCoordinate startingChunk)
-    {
-        currentChunk =
-            startingChunk;
-
-        RefreshChunks();
-    }
-
-    public void UpdateCurrentChunk(
-        ChunkCoordinate coordinate)
-    {
-        if (coordinate ==
-            currentChunk)
-        {
-            return;
-        }
-
-        currentChunk =
-            coordinate;
-
-        RefreshChunks();
-    }
-
-    private void RefreshChunks()
-    {
-        if (surfaceChunkManager == null)
-            return;
-
-        HashSet<ChunkCoordinate>
-            desiredChunks =
-                GetDesiredChunks();
-
-        foreach (
-            ChunkCoordinate coordinate
-            in desiredChunks)
-        {
-            if (!activeChunks.Contains(
-                    coordinate))
-            {
-                Debug.Log(
-                    $"Loading surface chunk: " +
-                    $"{coordinate}"
-                );
-
-                surfaceChunkManager.Load(
-                    coordinate
-                );
-            }
-        }
-
-        foreach (
-            ChunkCoordinate coordinate
-            in activeChunks)
-        {
-            if (!desiredChunks.Contains(
-                    coordinate))
-            {
-                surfaceChunkManager.Unload(
-                    coordinate
-                );
-            }
-        }
-
-        activeChunks =
-            desiredChunks;
-    }
-
-    private HashSet<ChunkCoordinate>
-        GetDesiredChunks()
-    {
-        HashSet<ChunkCoordinate>
-            desiredChunks =
-                new HashSet<
-                    ChunkCoordinate
-                >();
-
-        if (surfaceChunkManager == null)
-            return desiredChunks;
-
-        for (int z = -streamingRadius;
-             z <= streamingRadius;
-             z++)
-        {
-            for (int x = -streamingRadius;
-                 x <= streamingRadius;
-                 x++)
-            {
-                ChunkCoordinate coordinate =
-                    new ChunkCoordinate(
-                        currentChunk.x + x,
-                        currentChunk.z + z
-                    );
-
-                if (!surfaceChunkManager
-                    .HasChunkData(
-                        coordinate))
-                {
-                    continue;
-                }
-
-                desiredChunks.Add(
-                    coordinate
-                );
-            }
-        }
-
-        return desiredChunks;
     }
 }

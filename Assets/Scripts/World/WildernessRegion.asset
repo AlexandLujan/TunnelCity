@@ -19,6 +19,7 @@ MonoBehaviour:
     x: -4
     layer: 0
     z: 190
+  tilemapOrigin: {x: -4, y: 190}
   regionSizeInChunks: {x: 10, y: 12}
   chunkSize: 32
   sceneName: Wilderness

@@ -19,6 +19,7 @@ MonoBehaviour:
     x: 316
     layer: 0
     z: -2
+  tilemapOrigin: {x: 316, y: -2}
   regionSizeInChunks: {x: 10, y: 18}
   chunkSize: 32
   sceneName: Mountains

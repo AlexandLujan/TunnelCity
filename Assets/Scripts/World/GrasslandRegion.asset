@@ -19,6 +19,7 @@ MonoBehaviour:
     x: -4
     layer: 0
     z: -2
+  tilemapOrigin: {x: -4, y: -2}
   regionSizeInChunks: {x: 10, y: 6}
   chunkSize: 32
   sceneName: Grasslands
