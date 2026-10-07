@@ -1,9 +1,9 @@
+using System;
 using UnityEngine;
 
 public class CaveManager : MonoBehaviour
 {
     [Header("References")]
-
     [SerializeField]
     private CaveGenerator caveGenerator;
 
@@ -11,31 +11,29 @@ public class CaveManager : MonoBehaviour
     private CaveRenderer caveRenderer;
 
     [Header("Cave Definition")]
-
     [SerializeField]
     private CaveDefinition caveDefinition;
 
-    [Header("Initial Cave")]
+    [Header("Cave Seed")]
+    [SerializeField]
+    private bool useFixedSeed = true;
 
     [SerializeField]
-    private int caveSeed = 12345;
+    private int fixedCaveSeed = 12345;
+    private int caveSeed;
+    public int CaveSeed => caveSeed;
 
     [SerializeField]
     private int initialLayerIndex = 0;
-
     private CaveData currentCave;
     private CaveLayerData currentLayer;
-
     public CaveData CurrentCave => currentCave;
     public CaveLayerData CurrentLayer => currentLayer;
 
     private void Awake()
     {
-        if (caveGenerator == null)
-            caveGenerator = GetComponent<CaveGenerator>();
-
-        if (caveRenderer == null)
-            caveRenderer = GetComponent<CaveRenderer>();
+        if (caveGenerator == null) caveGenerator = GetComponent<CaveGenerator>();
+        if (caveRenderer == null) caveRenderer = GetComponent<CaveRenderer>();
     }
 
     private void Start()
@@ -52,16 +50,18 @@ public class CaveManager : MonoBehaviour
             $"Size: {caveDefinition?.WidthInTiles} x {caveDefinition?.DepthInTiles}"
         );
 
-        if (!HasRequiredReferences())
-            return;
+        if (!HasRequiredReferences()) return;
 
-        currentCave = new CaveData(
-            caveSeed,
-            caveDefinition
+        caveSeed = ResolveCaveSeed();
+
+        Debug.Log(
+            $"Cave seed: {caveSeed} | " +
+            $"Fixed seed: {useFixedSeed}"
         );
 
-        int initialLayerSeed =
-            GenerateLayerSeed(initialLayerIndex);
+        currentCave = new CaveData(caveSeed, caveDefinition);
+
+        int initialLayerSeed = GenerateLayerSeed(initialLayerIndex);
 
         CaveLayerData initialLayer =
             new CaveLayerData(
@@ -73,41 +73,29 @@ public class CaveManager : MonoBehaviour
             );
 
         currentCave.AddLayer(initialLayer);
-
         ActivateLayer(initialLayerIndex);
     }
 
     public CaveLayerData GetLayer(int layerIndex)
     {
-        if (currentCave == null)
-            return null;
-
+        if (currentCave == null) return null;
         return currentCave.GetLayer(layerIndex);
     }
 
     public bool HasLayer(int layerIndex)
     {
-        return currentCave != null &&
-               currentCave.HasLayer(layerIndex);
+        return currentCave != null && currentCave.HasLayer(layerIndex);
     }
 
-    public CaveLayerData CreateLayer(
-        int layerIndex)
+    public CaveLayerData CreateLayer(int layerIndex)
     {
-        if (currentCave == null ||
-            caveDefinition == null)
-        {
-            return null;
-        }
+        if (currentCave == null || caveDefinition == null) return null;
 
-        CaveLayerData existing =
-            currentCave.GetLayer(layerIndex);
+        CaveLayerData existing = currentCave.GetLayer(layerIndex);
 
-        if (existing != null)
-            return existing;
+        if (existing != null) return existing;
 
-        int layerSeed =
-            GenerateLayerSeed(layerIndex);
+        int layerSeed = GenerateLayerSeed(layerIndex);
 
         CaveLayerData newLayer =
             new CaveLayerData(
@@ -119,23 +107,17 @@ public class CaveManager : MonoBehaviour
             );
 
         currentCave.AddLayer(newLayer);
-
         return newLayer;
     }
 
     public bool ActivateLayer(int layerIndex)
     {
-        if (!HasRequiredReferences())
-            return false;
+        if (!HasRequiredReferences()) return false;
+        if (currentCave == null) return false;
 
-        if (currentCave == null)
-            return false;
+        CaveLayerData targetLayer = currentCave.GetLayer(layerIndex);
 
-        CaveLayerData targetLayer =
-            currentCave.GetLayer(layerIndex);
-
-        if (targetLayer == null)
-            return false;
+        if (targetLayer == null) return false;
 
         Debug.Log(
             $"Activating layer {targetLayer.layerIndex} | " +
@@ -144,32 +126,17 @@ public class CaveManager : MonoBehaviour
 
         // The previous layer remains stored,
         // but is no longer active.
-        if (currentLayer != null &&
-            currentLayer != targetLayer)
-        {
-            currentLayer.state =
-                CaveLayerState.Cached;
-        }
+        if (currentLayer != null && currentLayer != targetLayer)
+            currentLayer.state = CaveLayerState.Cached;
 
         // Only generate layers that have never
         // previously been generated.
-        if (targetLayer.state ==
-            CaveLayerState.DataOnly)
-        {
-            caveGenerator.GenerateCave(
-                targetLayer
-            );
-        }
+        if (targetLayer.state == CaveLayerState.DataOnly)
+            caveGenerator.GenerateCave(targetLayer, caveDefinition);
 
         currentLayer = targetLayer;
-
-        currentLayer.state =
-            CaveLayerState.Active;
-
-        caveRenderer.SetLayer(
-            currentLayer
-        );
-
+        currentLayer.state = CaveLayerState.Active;
+        caveRenderer.SetLayer(currentLayer);
         caveRenderer.RenderCave();
 
         return true;
@@ -177,43 +144,27 @@ public class CaveManager : MonoBehaviour
 
     public bool ChangeLayer(int targetLayerIndex)
     {
-        if (currentCave == null)
-            return false;
+        if (currentCave == null) return false;
 
-        CaveLayerData targetLayer =
-            currentCave.GetLayer(
-                targetLayerIndex
-            );
+        CaveLayerData targetLayer = currentCave.GetLayer(targetLayerIndex);
 
         if (targetLayer == null)
         {
-            targetLayer =
-                CreateLayer(targetLayerIndex);
+            targetLayer = CreateLayer(targetLayerIndex);
 
-            if (targetLayer == null)
-                return false;
+            if (targetLayer == null) return false;
         }
-
-        return ActivateLayer(
-            targetLayerIndex
-        );
+        return ActivateLayer(targetLayerIndex);
     }
 
-    private int GenerateLayerSeed(
-        int layerIndex)
+    private int GenerateLayerSeed(int layerIndex)
     {
-        unchecked
-        {
-            return caveSeed +
-                   (layerIndex * 73856093);
-        }
+        unchecked { return caveSeed + (layerIndex * 73856093); }
     }
 
     private bool HasRequiredReferences()
     {
-        if (caveGenerator == null ||
-            caveRenderer == null ||
-            caveDefinition == null)
+        if (caveGenerator == null || caveRenderer == null || caveDefinition == null)
         {
             Debug.LogWarning(
                 "CaveManager: Missing assignments.",
@@ -222,7 +173,6 @@ public class CaveManager : MonoBehaviour
 
             return false;
         }
-
         return true;
     }
 
@@ -233,8 +183,7 @@ public class CaveManager : MonoBehaviour
 
     public bool BlastEntrance(OpeningDirection direction)
     {
-        if (currentLayer == null)
-            return false;
+        if (currentLayer == null) return false;
 
         int targetLayerIndex = currentLayer.layerIndex;
 
@@ -242,26 +191,21 @@ public class CaveManager : MonoBehaviour
         {
             case OpeningDirection.Down:
                 targetLayerIndex--;
-
                 break;
-
             case OpeningDirection.Up:
                 targetLayerIndex++;
-
                 break;
-
             default:
                 return false;
         }
-
         return ChangeLayer(targetLayerIndex);
     }
 
     public bool BlastEntrance(DrilledOpening entrance)
     {
-        if (entrance.SourceLayerIndex != currentLayer.layerIndex) return false;
         if (entrance == null) return false;
         if (currentLayer == null) return false;
+        if (entrance.SourceLayerIndex != currentLayer.layerIndex) return false;
         if (entrance.HasBeenBlasted) return false;
 
         int targetLayerIndex = entrance.SourceLayerIndex;
@@ -271,11 +215,9 @@ public class CaveManager : MonoBehaviour
             case OpeningDirection.Down:
                 targetLayerIndex--;
                 break;
-
             case OpeningDirection.Up:
                 targetLayerIndex++;
                 break;
-
             default:
                 return false;
         }
@@ -283,6 +225,13 @@ public class CaveManager : MonoBehaviour
         entrance.MarkBlasted();
 
         return ChangeLayer(targetLayerIndex);
+    }
+
+    private int ResolveCaveSeed()
+    {
+        if (useFixedSeed) return fixedCaveSeed;
+
+        return Guid.NewGuid().GetHashCode();
     }
 }
 
