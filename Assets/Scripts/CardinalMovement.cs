@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.InputSystem;
 
 public class CardinalMovement : MonoBehaviour
 {
@@ -36,7 +35,8 @@ public class CardinalMovement : MonoBehaviour
 
     private void Start()
     {
-        if (worldGrid == null) return;
+        if (worldGrid == null)
+            return;
 
         currentCell = worldGrid.WorldToCell(rb.position);
         rb.position = GetCellCenter(currentCell);
@@ -55,7 +55,8 @@ public class CardinalMovement : MonoBehaviour
             return;
         }
 
-        if(inputDirection != Vector2Int.zero && inputDirection != lastInput) 
+        if (inputDirection != Vector2Int.zero &&
+            inputDirection != lastInput)
         {
             lastInput = inputDirection;
         }
@@ -70,9 +71,13 @@ public class CardinalMovement : MonoBehaviour
             TryMove(heldDirection);
             return;
         }
+
         heldTimer += Time.deltaTime;
 
-        float requiredBoost = hasBoosted ? boostDelay : initialBoostDelay;
+        float requiredBoost =
+            hasBoosted
+                ? boostDelay
+                : initialBoostDelay;
 
         if (heldTimer >= requiredBoost)
         {
@@ -109,21 +114,37 @@ public class CardinalMovement : MonoBehaviour
 
     private Vector2Int GetInputDirection()
     {
-        Keyboard keyboard = Keyboard.current;
+        if (Input.GetKey(KeyCode.W) ||
+            Input.GetKey(KeyCode.UpArrow))
+        {
+            return Vector2Int.up;
+        }
 
-        if (keyboard == null) return Vector2Int.zero;
+        if (Input.GetKey(KeyCode.A) ||
+            Input.GetKey(KeyCode.LeftArrow))
+        {
+            return Vector2Int.left;
+        }
 
-        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) return Vector2Int.up;
-        if (keyboard.aKey.isPressed || keyboard.downArrowKey.isPressed) return Vector2Int.left;
-        if (keyboard.sKey.isPressed || keyboard.leftArrowKey.isPressed) return Vector2Int.down;
-        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) return Vector2Int.right;
+        if (Input.GetKey(KeyCode.S) ||
+            Input.GetKey(KeyCode.DownArrow))
+        {
+            return Vector2Int.down;
+        }
+
+        if (Input.GetKey(KeyCode.D) ||
+            Input.GetKey(KeyCode.RightArrow))
+        {
+            return Vector2Int.right;
+        }
 
         return Vector2Int.zero;
     }
 
     private void TryMove(Vector2Int direction)
     {
-        if (isMoving) return;
+        if (isMoving)
+            return;
 
         Vector3Int targetCell =
             currentCell +
@@ -151,12 +172,14 @@ public class CardinalMovement : MonoBehaviour
         );
     }
 
-    private IEnumerator MoveToCell(Vector3Int targetCell)
+    private IEnumerator MoveToCell(
+        Vector3Int targetCell)
     {
         isMoving = true;
 
         Vector3 startPos = rb.position;
-        Vector3 targetPos = GetCellCenter(targetCell);
+        Vector3 targetPos =
+            GetCellCenter(targetCell);
 
         float elapsedTime = 0f;
 
@@ -164,23 +187,40 @@ public class CardinalMovement : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
 
-            float t = Mathf.Clamp01(elapsedTime / moveDuration);
+            float t =
+                Mathf.Clamp01(
+                    elapsedTime / moveDuration
+                );
 
-            Vector2 nextPos = Vector2.Lerp(startPos, targetPos, t);
+            Vector2 nextPos =
+                Vector2.Lerp(
+                    startPos,
+                    targetPos,
+                    t
+                );
 
             rb.MovePosition(nextPos);
-            yield return new WaitForFixedUpdate();
+
+            yield return
+                new WaitForFixedUpdate();
         }
 
         rb.MovePosition(targetPos);
+
         currentCell = targetCell;
         isMoving = false;
     }
 
-    private Vector3 GetCellCenter(Vector3Int cell)
+    private Vector3 GetCellCenter(
+        Vector3Int cell)
     {
-        Vector3 center = worldGrid.GetCellCenterWorld(cell);
-        return new Vector2(center.x, center.y);
+        Vector3 center =
+            worldGrid.GetCellCenterWorld(cell);
+
+        return new Vector2(
+            center.x,
+            center.y
+        );
     }
 
     public Vector2Int GetLastInput()
